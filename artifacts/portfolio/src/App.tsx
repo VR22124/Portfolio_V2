@@ -6,7 +6,6 @@ import ParticleField from './components/ParticleField';
 import Loader from './components/Loader';
 import Nav from './components/Nav';
 import Hero from './components/Hero';
-import Stats from './components/Stats';
 import Journey from './components/Journey';
 import Experience from './components/Experience';
 import Skills from './components/Skills';
@@ -112,7 +111,6 @@ function App() {
         <Nav />
         <main>
           <Hero />
-          <Stats />
           <Journey />
           <Experience />
           <Skills />
