@@ -1,33 +1,34 @@
 import { useEffect, useRef, useState } from 'react';
 import data from '../data.json';
 
-// Contextual phase labels — derived, not in data
 const PHASES = ['Discover', 'Architect', 'Execute', 'Handover'];
 const TOTAL = data.howIWork.length;
 
 interface StepProps {
   step: (typeof data.howIWork)[number];
   phase: string;
-  index: number;
   isRevealed: boolean;
-  isActive: boolean;
-  isPast: boolean;
+  isHovered: boolean;
   isMobile: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
 }
 
-function Step({ step, phase, index, isRevealed, isActive, isPast, isMobile }: StepProps) {
-  const num = step.step; // "01" "02" etc.
+function Step({ step, phase, isRevealed, isHovered, isMobile, onMouseEnter, onMouseLeave }: StepProps) {
+  const num = step.step;
 
   return (
     <div
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       style={{
         position: 'relative',
         padding: `clamp(3rem, 6vh, 5rem) 5vw`,
         overflow: 'hidden',
-        /* Accent left strip */
+        cursor: 'default',
       }}
     >
-      {/* ── Left accent strip ─────────────────────────────── */}
+      {/* Left accent strip — hover only */}
       <div
         aria-hidden="true"
         style={{
@@ -36,15 +37,15 @@ function Step({ step, phase, index, isRevealed, isActive, isPast, isMobile }: St
           top: 0,
           bottom: 0,
           width: '2px',
-          background: 'linear-gradient(to bottom, #d4ff4f, rgba(212,255,79,0.2))',
-          boxShadow: isActive ? '0 0 16px rgba(212,255,79,0.45)' : 'none',
-          transform: isActive ? 'scaleY(1)' : 'scaleY(0)',
+          background: 'linear-gradient(to bottom, #d4ff4f, rgba(212,255,79,0.15))',
+          boxShadow: isHovered ? '0 0 18px rgba(212,255,79,0.5)' : 'none',
+          transform: isHovered ? 'scaleY(1)' : 'scaleY(0)',
           transformOrigin: 'top',
-          transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease',
+          transition: 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease',
         }}
       />
 
-      {/* ── Top horizontal rule ───────────────────────────── */}
+      {/* Top rule */}
       <div
         aria-hidden="true"
         style={{
@@ -53,18 +54,31 @@ function Step({ step, phase, index, isRevealed, isActive, isPast, isMobile }: St
           left: 0,
           right: 0,
           height: '1px',
-          background: isActive
+          background: isHovered
             ? 'linear-gradient(to right, #d4ff4f 0%, rgba(212,255,79,0.18) 25%, #1a1a22 60%)'
             : '#1a1a22',
           transform: `scaleX(${isRevealed ? 1 : 0})`,
           transformOrigin: 'left',
           transition: isRevealed
-            ? 'transform 0.95s cubic-bezier(0.16, 1, 0.3, 1), background 0.6s ease'
-            : 'background 0.6s ease',
+            ? 'transform 0.95s cubic-bezier(0.16, 1, 0.3, 1), background 0.35s ease'
+            : 'background 0.35s ease',
         }}
       />
 
-      {/* ── Massive watermark numeral ─────────────────────── */}
+      {/* Subtle hover background glow */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(ellipse 70% 100% at 0% 50%, rgba(212,255,79,0.04) 0%, transparent 70%)',
+          opacity: isHovered ? 1 : 0,
+          transition: 'opacity 0.4s ease',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Massive watermark numeral */}
       <div
         aria-hidden="true"
         className="font-display"
@@ -77,9 +91,9 @@ function Step({ step, phase, index, isRevealed, isActive, isPast, isMobile }: St
           fontSize: isMobile ? 'clamp(120px, 40vw, 220px)' : 'clamp(140px, 20vw, 320px)',
           lineHeight: 1,
           letterSpacing: '-0.07em',
-          color: '#f5f5f2',
-          opacity: isActive ? 0.14 : (isRevealed ? 0.07 : 0),
-          transition: 'opacity 0.7s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+          color: isHovered ? '#d4ff4f' : '#f5f5f2',
+          opacity: isHovered ? 0.1 : (isRevealed ? 0.07 : 0),
+          transition: 'opacity 0.4s ease, color 0.4s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
           userSelect: 'none',
           pointerEvents: 'none',
           zIndex: 0,
@@ -88,7 +102,7 @@ function Step({ step, phase, index, isRevealed, isActive, isPast, isMobile }: St
         {num}
       </div>
 
-      {/* ── Content layout ────────────────────────────────── */}
+      {/* Content layout */}
       <div
         style={{
           position: 'relative',
@@ -100,7 +114,7 @@ function Step({ step, phase, index, isRevealed, isActive, isPast, isMobile }: St
           minHeight: isMobile ? undefined : 'clamp(10rem, 18vh, 16rem)',
         }}
       >
-        {/* ── Left column: phase + counter ──────────────────── */}
+        {/* Left: phase badge + counter */}
         <div
           style={{
             display: 'flex',
@@ -119,27 +133,26 @@ function Step({ step, phase, index, isRevealed, isActive, isPast, isMobile }: St
               fontSize: '9px',
               letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              color: isActive ? '#d4ff4f' : (isPast ? '#4a4a52' : '#2a2a34'),
-              border: `1px solid ${isActive ? 'rgba(212,255,79,0.3)' : 'rgba(255,255,255,0.05)'}`,
+              color: isHovered ? '#d4ff4f' : '#2e2e3a',
+              border: `1px solid ${isHovered ? 'rgba(212,255,79,0.35)' : 'rgba(255,255,255,0.05)'}`,
               padding: '4px 8px',
               borderRadius: '2px',
               opacity: isRevealed ? 1 : 0,
               transform: isRevealed ? 'translateX(0)' : 'translateX(-10px)',
               transition: isRevealed
-                ? 'opacity 0.45s ease 0.12s, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.12s, color 0.45s ease, border-color 0.45s ease'
-                : 'color 0.45s ease, border-color 0.45s ease',
+                ? 'opacity 0.45s ease 0.12s, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.12s, color 0.35s ease, border-color 0.35s ease'
+                : 'color 0.35s ease, border-color 0.35s ease',
             }}
           >
-            {/* Status dot */}
             <span
               style={{
                 width: '5px',
                 height: '5px',
                 borderRadius: '50%',
-                background: isActive ? '#d4ff4f' : (isPast ? '#3a3a44' : 'transparent'),
-                border: isPast || isActive ? 'none' : '1px solid #3a3a44',
+                background: isHovered ? '#d4ff4f' : 'transparent',
+                border: isHovered ? 'none' : '1px solid #3a3a44',
                 flexShrink: 0,
-                transition: 'background 0.4s ease',
+                transition: 'background 0.35s ease, border-color 0.35s ease',
               }}
             />
             {phase}
@@ -150,21 +163,20 @@ function Step({ step, phase, index, isRevealed, isActive, isPast, isMobile }: St
             style={{
               fontFamily: 'Menlo, monospace',
               fontSize: '11px',
-              color: isPast ? '#3a3a44' : (isActive ? '#d4ff4f' : '#252530'),
+              color: isHovered ? '#d4ff4f' : '#252530',
               letterSpacing: '0.08em',
               opacity: isRevealed ? 1 : 0,
               transition: isRevealed
-                ? 'opacity 0.4s ease 0.2s, color 0.4s ease'
-                : 'color 0.4s ease',
+                ? 'opacity 0.4s ease 0.2s, color 0.35s ease'
+                : 'color 0.35s ease',
             }}
           >
             {num} / {String(TOTAL).padStart(2, '0')}
           </div>
         </div>
 
-        {/* ── Right column: title + description ─────────────── */}
+        {/* Right: title + description */}
         <div>
-          {/* Title */}
           <h3
             className="font-display"
             style={{
@@ -184,31 +196,30 @@ function Step({ step, phase, index, isRevealed, isActive, isPast, isMobile }: St
             {step.title}
           </h3>
 
-          {/* Accent underline — draws under title */}
+          {/* Accent underline — hover only */}
           <div
             aria-hidden="true"
             style={{
               height: '1px',
-              background: 'linear-gradient(to right, rgba(212,255,79,0.25), transparent 60%)',
-              width: isActive ? '60%' : '0%',
+              background: 'linear-gradient(to right, rgba(212,255,79,0.4), transparent 65%)',
+              width: isHovered ? '55%' : '0%',
               marginBottom: 'clamp(0.875rem, 1.5vh, 1.25rem)',
-              transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s',
+              transition: 'width 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           />
 
-          {/* Description */}
           <p
             style={{
               fontSize: 'clamp(14px, 1.1vw, 16px)',
-              color: '#8c8c94',
+              color: isHovered ? '#b0b0ba' : '#8c8c94',
               lineHeight: 1.8,
               margin: 0,
               maxWidth: '520px',
               opacity: isRevealed ? 1 : 0,
               transform: isRevealed ? 'translateY(0)' : 'translateY(12px)',
               transition: isRevealed
-                ? 'opacity 0.5s ease 0.45s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.45s'
-                : 'none',
+                ? 'opacity 0.5s ease 0.45s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.45s, color 0.35s ease'
+                : 'color 0.35s ease',
             }}
           >
             {step.description}
@@ -225,7 +236,7 @@ export default function HowIWork() {
 
   const [headerVisible, setHeaderVisible] = useState(false);
   const [revealedSteps, setRevealedSteps] = useState<Set<number>>(new Set());
-  const [activeStep, setActiveStep] = useState<number | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -250,35 +261,23 @@ export default function HowIWork() {
     const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (isReduced) {
       setRevealedSteps(new Set(data.howIWork.map((_, i) => i)));
-      setActiveStep(TOTAL - 1);
       return;
     }
-
     const cleanups: (() => void)[] = [];
-
     stepRefs.current.forEach((el, i) => {
       if (!el) return;
-
-      const revealObs = new IntersectionObserver(
+      const obs = new IntersectionObserver(
         (entries) => {
           if (entries[0].isIntersecting) {
             setRevealedSteps((prev) => { const n = new Set(prev); n.add(i); return n; });
-            revealObs.disconnect();
+            obs.disconnect();
           }
         },
         { threshold: 0.12 }
       );
-      revealObs.observe(el);
-      cleanups.push(() => revealObs.disconnect());
-
-      const activeObs = new IntersectionObserver(
-        (entries) => { if (entries[0].isIntersecting) setActiveStep(i); },
-        { threshold: 0.42 }
-      );
-      activeObs.observe(el);
-      cleanups.push(() => activeObs.disconnect());
+      obs.observe(el);
+      cleanups.push(() => obs.disconnect());
     });
-
     return () => cleanups.forEach((fn) => fn());
   }, []);
 
@@ -290,7 +289,7 @@ export default function HowIWork() {
       id="how-i-work"
       style={{ padding: 'clamp(5rem, 10vh, 9rem) 0', position: 'relative' }}
     >
-      {/* ── Header ──────────────────────────────────────────── */}
+      {/* Header */}
       <div
         style={{
           padding: '0 5vw',
@@ -303,7 +302,6 @@ export default function HowIWork() {
         }}
       >
         <div>
-          {/* Eyebrow */}
           <div
             style={{
               fontFamily: 'Menlo, monospace',
@@ -318,8 +316,6 @@ export default function HowIWork() {
           >
             Process
           </div>
-
-          {/* Word-split headline */}
           <h2
             className="font-display"
             aria-label="How I work."
@@ -352,7 +348,7 @@ export default function HowIWork() {
           </h2>
         </div>
 
-        {/* Step progress dots */}
+        {/* Progress dots — track revealed steps */}
         <div
           style={{
             display: 'flex',
@@ -363,46 +359,43 @@ export default function HowIWork() {
             transition: 'opacity 0.6s ease 0.4s',
           }}
         >
-          {data.howIWork.map((_, i) => (
-            <div
-              key={i}
-              style={{
-                width: activeStep !== null && i <= activeStep ? '20px' : '6px',
-                height: '6px',
-                borderRadius: '3px',
-                background:
-                  activeStep === i
-                    ? '#d4ff4f'
-                    : activeStep !== null && i < activeStep
-                      ? '#3a3a44'
-                      : '#1e1e28',
-                boxShadow: activeStep === i ? '0 0 8px rgba(212,255,79,0.6)' : 'none',
-                transition:
-                  'width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s ease, box-shadow 0.4s ease',
-              }}
-              aria-hidden="true"
-            />
-          ))}
+          {data.howIWork.map((_, i) => {
+            const isHov = hoveredIndex === i;
+            const isRev = revealedSteps.has(i);
+            return (
+              <div
+                key={i}
+                aria-hidden="true"
+                style={{
+                  width: isHov ? '22px' : (isRev ? '10px' : '6px'),
+                  height: '6px',
+                  borderRadius: '3px',
+                  background: isHov ? '#d4ff4f' : (isRev ? '#3a3a44' : '#1e1e28'),
+                  boxShadow: isHov ? '0 0 10px rgba(212,255,79,0.7)' : 'none',
+                  transition: 'width 0.35s cubic-bezier(0.16, 1, 0.3, 1), background 0.35s ease, box-shadow 0.35s ease',
+                }}
+              />
+            );
+          })}
         </div>
       </div>
 
-      {/* ── Steps ───────────────────────────────────────────── */}
+      {/* Steps */}
       <div>
         {data.howIWork.map((step, i) => (
           <div key={i} ref={(el) => { stepRefs.current[i] = el; }}>
             <Step
               step={step}
               phase={PHASES[i]}
-              index={i}
               isRevealed={revealedSteps.has(i)}
-              isActive={activeStep === i}
-              isPast={activeStep !== null && i < activeStep}
+              isHovered={!isMobile && hoveredIndex === i}
               isMobile={isMobile}
+              onMouseEnter={() => { if (!isMobile) setHoveredIndex(i); }}
+              onMouseLeave={() => { if (!isMobile) setHoveredIndex(null); }}
             />
           </div>
         ))}
 
-        {/* Bottom rule */}
         <div
           aria-hidden="true"
           style={{
