@@ -1,0 +1,36 @@
+Context-first instruction: Read the entire existing codebase before making any changes. Study the current process/how-I-work section data, the color palette, accent color, typography, and the live WebGL background. This section must remain transparent and lightweight — zero opaque backgrounds, no cards, no interference with the WebGL.
+
+Completely rebuild the "How I Work" section with this concept — "The Protocol Sequence".
+
+Core Concept — Vertical Scroll-Triggered Sequential Stack: Instead of showing all four steps at once in a flat grid, each process step is revealed one at a time as the user scrolls — like a sequence executing step by step. The steps are stacked vertically with generous spacing. Each step feels like a moment, not a bullet point.
+
+Layout of Each Step: Each step is a full-width horizontal row with three zones:
+
+Far left: The step number — enormous, ultra-thin weight, ghost/watermark scale. Not a decorative box — raw oversized type. 01, 02, 03, 04.
+Center-left: The step title in large, bold display type — this is the hero of each row.
+Right side: The description text — lighter weight, smaller size, about 2–3 lines, appearing slightly after the title with a delay.
+A thin horizontal rule sits above each step row and draws itself left-to-right as that step enters the viewport — like a command being executed. The content then follows.
+
+The Connecting Flow Line: Between each step, a thin vertical dashed or dotted line connects them — running down the left edge aligned with the numbers. This line grows downward progressively as each step enters view, visually linking the steps into a chain — like a flowchart being drawn in real time. It reinforces the idea of a sequence, a process, a protocol.
+
+Scroll-Triggered Reveal Per Step: Each step starts invisible. As the user scrolls and each step enters the viewport:
+
+The horizontal rule above it draws itself across the full width
+The step number counts up — from 00 to its actual number with a fast digit-roll animation (like an odometer), landing on the correct value
+The title slides in from the left — not bouncy, smooth and deliberate
+The description fades up with a slight delay after the title settles
+Steps do NOT all animate at once — each one waits its turn as the user scrolls past it
+Active Step Highlight: The step currently most visible in the viewport gets its number glowing in the accent color. The others remain in the ghost/muted state. As you scroll, the glow transfers from one step to the next — like a cursor moving through a list.
+
+Section Header: The "How I work." headline should have its own scroll-in moment — the words split and animate in word by word, each word rising from below with staggered timing. The PROCESS label above it flickers in subtly before the headline arrives.
+
+Feel and Tone: This should feel like watching a system initialize — methodical, confident, technical. Each step arriving in sequence communicates process and precision. The animation timing should be unhurried — deliberate pauses between elements landing, never frantic.
+
+Strict Rules:
+
+No grid layout — fully vertical, one step per scroll segment
+No cards, no opaque backgrounds, no containers
+Zero new canvas or WebGL calls
+Reuse all existing process step data verbatim from the codebase
+All animations via IntersectionObserver + CSS transitions only
+No scroll-jacking — purely natural scroll with triggered animations
