@@ -6,106 +6,101 @@ type TextParticle = { x: number; y: number; originX: number; originY: number; vx
 
 const OWNER_NAME = data.meta.name.toUpperCase();
 
+// Portfolio palette
+const BG       = '#08080a';
+const ACCENT   = '#d4ff4f';       // portfolio lime accent
+const ACCENT_A = 'rgba(212,255,79,';  // for alpha usage
+const WHITE    = '#f5f5f2';       // text-primary
+const FONT     = '700 80px "Space Grotesk", sans-serif';
+
 export default function Loader({ onComplete }: { onComplete: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [opacity, setOpacity] = useState(1);
+  const [overlayOpacity, setOverlayOpacity] = useState(1);
 
   useEffect(() => {
     const hasLoaded = sessionStorage.getItem('portfolio-loaded');
     const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (hasLoaded || isReducedMotion) {
-      onComplete();
-      return;
-    }
+    if (hasLoaded || isReducedMotion) { onComplete(); return; }
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
     let w = window.innerWidth;
     let h = window.innerHeight;
-    canvas.width = w;
+    canvas.width  = w;
     canvas.height = h;
-
     let cx = w / 2;
     let cy = h / 2;
 
-    let animationFrameId: number;
-    const startTime = performance.now();
+    let rafId: number;
+    const t0 = performance.now();
 
-    const timeline = {
-      darkness:     200,
-      birthEnd:    1000,
-      linesEnd:    2400,
-      nodesEnd:    2750,
-      implosionEnd:3500,
-      textMorphEnd:4600,
-      holdEnd:     5200,
-      shatterEnd:  6400,
+    // ── Timeline (ms) ─────────────────────────────────────────────────────────
+    const T = {
+      dark:     200,
+      birth:   1100,
+      lines:   2500,
+      nodes:   2850,
+      implode: 3700,
+      morph:   4800,
+      hold:    5400,
+      shatter: 6600,
     };
 
-    const easeInOutCubic = (t: number) =>
-      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
-    const easeInExpo   = (t: number) => t === 0 ? 0 : Math.pow(2, 10 * t - 10);
+    // ── Easing ────────────────────────────────────────────────────────────────
+    const io3 = (t: number) => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+    const oQ5 = (t: number) => 1 - Math.pow(1-t, 5);
+    const iExp= (t: number) => t === 0 ? 0 : Math.pow(2, 10*t-10);
 
-    // --- Build constellation nodes ---
+    // ── Constellation nodes ───────────────────────────────────────────────────
     const buildNodes = (): Node[] => {
       const list: Node[] = [];
-      const maxDist = Math.min(w, h) * 0.42;
+      const maxD = Math.min(w, h) * 0.42;
       const count = 22;
       for (let i = 0; i < count; i++) {
-        const angle    = (i / count) * Math.PI * 2 + Math.random() * 0.4;
-        const distance = 60 + Math.random() * maxDist;
-        list.push({ x: cx + Math.cos(angle) * distance, y: cy + Math.sin(angle) * distance, distance, angle });
+        const angle    = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+        const distance = 70 + Math.random() * maxD;
+        list.push({ x: cx + Math.cos(angle)*distance, y: cy + Math.sin(angle)*distance, distance, angle });
       }
-      // extra random scattered nodes
       for (let i = 0; i < 8; i++) {
         const angle    = Math.random() * Math.PI * 2;
-        const distance = 80 + Math.random() * maxDist * 0.9;
-        list.push({ x: cx + Math.cos(angle) * distance, y: cy + Math.sin(angle) * distance, distance, angle });
+        const distance = 90 + Math.random() * maxD * 0.85;
+        list.push({ x: cx + Math.cos(angle)*distance, y: cy + Math.sin(angle)*distance, distance, angle });
       }
-      list.sort((a, b) => a.distance - b.distance);
-      return list;
+      return list.sort((a, b) => a.distance - b.distance);
     };
 
     let nodes: Node[] = buildNodes();
 
-    // --- Generate text pixels ---
+    // ── Text particle generation (offscreen canvas) ───────────────────────────
     let textParticles: TextParticle[] = [];
-    let textGenerated = false;
-    let fadeOutStarted = false;
+    let textReady = false;
+    let fadeStarted = false;
 
-    const generateTextParticles = (): TextParticle[] => {
+    const buildTextParticles = (): TextParticle[] => {
       const off = document.createElement('canvas');
-      off.width  = w;
-      off.height = h;
-      const oCtx = off.getContext('2d')!;
-      const fontSize = Math.min(w * 0.09, 90);
-      oCtx.fillStyle    = 'white';
-      oCtx.font         = `600 ${fontSize}px Cinzel, serif`;
-      oCtx.textAlign    = 'center';
-      oCtx.textBaseline = 'middle';
-      oCtx.fillText(OWNER_NAME, cx, cy);
-
-      const imgData = oCtx.getImageData(0, 0, w, h).data;
+      off.width = w; off.height = h;
+      const oc = off.getContext('2d')!;
+      const fs = Math.min(w * 0.085, 88);
+      oc.fillStyle = WHITE;
+      oc.font = `700 ${fs}px "Space Grotesk", sans-serif`;
+      oc.textAlign    = 'center';
+      oc.textBaseline = 'middle';
+      oc.fillText(OWNER_NAME, cx, cy);
+      const px = oc.getImageData(0, 0, w, h).data;
       const list: TextParticle[] = [];
-
-      const step = Math.max(3, Math.floor(w / 320));
+      const step = Math.max(3, Math.floor(w / 340));
       for (let py = 0; py < h; py += step) {
-        for (let px = 0; px < w; px += step) {
-          const idx = (py * w + px) * 4;
-          if (imgData[idx + 3] > 128) {
+        for (let bx = 0; bx < w; bx += step) {
+          if (px[(py * w + bx) * 4 + 3] > 128) {
             list.push({
-              x:       cx,
-              y:       cy,
-              originX: px + (Math.random() - 0.5) * step,
-              originY: py + (Math.random() - 0.5) * step,
-              vx:      (Math.random() - 0.5) * 8,
-              vy:      -(2 + Math.random() * 6),
+              x: cx, y: cy,
+              originX: bx + (Math.random()-0.5)*step,
+              originY: py + (Math.random()-0.5)*step,
+              vx: (Math.random()-0.5)*8,
+              vy: -(2 + Math.random()*6),
             });
           }
         }
@@ -113,300 +108,196 @@ export default function Loader({ onComplete }: { onComplete: () => void }) {
       return list;
     };
 
-    const drawGlow = (color: string, blur: number) => {
-      ctx.shadowBlur  = blur;
-      ctx.shadowColor = color;
-    };
+    // ── Cross-links (circuit look) ─────────────────────────────────────────────
+    const crossThresh = Math.min(w, h) * 0.22;
+    const crossPairs: [Node, Node][] = [];
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i+1; j < nodes.length; j++) {
+        const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+        if (Math.sqrt(dx*dx+dy*dy) < crossThresh) crossPairs.push([nodes[i], nodes[j]]);
+      }
+    }
 
-    const GLOW  = 'rgba(0, 220, 255, 0.9)';
-    const WHITE = 'rgba(255, 255, 255, 1)';
-    const TEXT_COLOR = 'rgba(180, 245, 255, 1)';
+    // ── Draw helpers ──────────────────────────────────────────────────────────
+    const glow = (blur: number, color = ACCENT) => { ctx.shadowBlur = blur; ctx.shadowColor = color; };
+    const noGlow = () => { ctx.shadowBlur = 0; };
 
+    // ── Main render loop ───────────────────────────────────────────────────────
     const render = (now: number) => {
-      const elapsed = now - startTime;
+      const e = now - t0;
 
-      // Full black background each frame
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = BG;
       ctx.fillRect(0, 0, w, h);
-
       ctx.save();
 
-      // ── Phase 1: Darkness ──────────────────────────────────────────────────
-      if (elapsed < timeline.darkness) {
-        ctx.restore();
-        animationFrameId = requestAnimationFrame(render);
-        return;
-      }
+      // ── Darkness ─────────────────────────────────────────────────────────────
+      if (e < T.dark) { ctx.restore(); rafId = requestAnimationFrame(render); return; }
 
-      // ── Phase 2: Birth pulse ───────────────────────────────────────────────
-      if (elapsed < timeline.birthEnd) {
-        const t  = (elapsed - timeline.darkness) / (timeline.birthEnd - timeline.darkness);
+      // ── Birth pulse ───────────────────────────────────────────────────────────
+      if (e < T.birth) {
+        const t  = (e - T.dark) / (T.birth - T.dark);
         const p  = Math.sin(t * Math.PI);
         const sz = 2 + p * 5;
-        drawGlow(GLOW, 30 * p + 5);
-        ctx.fillStyle = WHITE;
-        ctx.beginPath();
-        ctx.arc(cx, cy, sz, 0, Math.PI * 2);
-        ctx.fill();
-
-        // outer ring
-        ctx.strokeStyle = `rgba(0, 220, 255, ${p * 0.5})`;
+        glow(35 * p + 5);
+        ctx.fillStyle = ACCENT;
+        ctx.beginPath(); ctx.arc(cx, cy, sz, 0, Math.PI*2); ctx.fill();
+        noGlow();
+        ctx.strokeStyle = ACCENT_A + (p * 0.35) + ')';
         ctx.lineWidth   = 1;
-        ctx.shadowBlur  = 0;
-        ctx.beginPath();
-        ctx.arc(cx, cy, sz * 3 + 10 * p, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.restore();
-        animationFrameId = requestAnimationFrame(render);
-        return;
+        ctx.beginPath(); ctx.arc(cx, cy, sz * 3 + 12*p, 0, Math.PI*2); ctx.stroke();
+        ctx.restore(); rafId = requestAnimationFrame(render); return;
       }
 
-      // ── Phase 3: Fiber-optic lines draw ────────────────────────────────────
-      if (elapsed < timeline.linesEnd) {
-        const t     = (elapsed - timeline.birthEnd) / (timeline.linesEnd - timeline.birthEnd);
-        const eased = easeInOutCubic(t);
-
-        // draw lines
+      // ── Lines drawing ─────────────────────────────────────────────────────────
+      if (e < T.lines) {
+        const t = (e - T.birth) / (T.lines - T.birth);
         ctx.lineWidth = 0.8;
-        nodes.forEach((node, i) => {
-          const delay = i / nodes.length * 0.4;
+        nodes.forEach((nd, i) => {
+          const delay = (i / nodes.length) * 0.38;
           const lt    = Math.max(0, Math.min(1, (t - delay) / (1 - delay)));
-          const dist  = node.distance * easeInOutCubic(lt);
-          const px    = cx + Math.cos(node.angle) * dist;
-          const py    = cy + Math.sin(node.angle) * dist;
-
-          const grad = ctx.createLinearGradient(cx, cy, px, py);
-          grad.addColorStop(0, 'rgba(0, 220, 255, 0.9)');
-          grad.addColorStop(1, 'rgba(0, 180, 255, 0.3)');
+          const dist  = nd.distance * io3(lt);
+          const px    = cx + Math.cos(nd.angle) * dist;
+          const py    = cy + Math.sin(nd.angle) * dist;
+          const grad  = ctx.createLinearGradient(cx, cy, px, py);
+          grad.addColorStop(0, ACCENT_A + '0.95)');
+          grad.addColorStop(1, ACCENT_A + '0.25)');
           ctx.strokeStyle = grad;
-          drawGlow(GLOW, 8);
-          ctx.beginPath();
-          ctx.moveTo(cx, cy);
-          ctx.lineTo(px, py);
-          ctx.stroke();
+          glow(10);
+          ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
         });
-
-        // cross lines between nearby nodes (circuit look)
-        ctx.strokeStyle = 'rgba(0, 200, 255, 0.12)';
-        ctx.lineWidth   = 0.5;
-        ctx.shadowBlur  = 0;
-        for (let i = 0; i < nodes.length; i++) {
-          for (let j = i + 1; j < nodes.length; j++) {
-            const ni = nodes[i], nj = nodes[j];
-            const dx = ni.x - nj.x, dy = ni.y - nj.y;
-            const dd = Math.sqrt(dx * dx + dy * dy);
-            if (dd < Math.min(w, h) * 0.22 && eased > 0.6) {
-              ctx.beginPath();
-              ctx.moveTo(ni.x, ni.y);
-              ctx.lineTo(nj.x, nj.y);
-              ctx.stroke();
-            }
-          }
+        if (t > 0.65) {
+          noGlow();
+          ctx.strokeStyle = ACCENT_A + '0.08)';
+          ctx.lineWidth = 0.5;
+          crossPairs.forEach(([a, b]) => {
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+          });
         }
-
-        // center core
-        drawGlow(GLOW, 20);
+        glow(22);
         ctx.fillStyle = WHITE;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.restore();
-        animationFrameId = requestAnimationFrame(render);
-        return;
+        ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI*2); ctx.fill();
+        ctx.restore(); rafId = requestAnimationFrame(render); return;
       }
 
-      // ── Phase 4: Nodes flash & lock ────────────────────────────────────────
-      if (elapsed < timeline.nodesEnd) {
-        const t     = (elapsed - timeline.linesEnd) / (timeline.nodesEnd - timeline.linesEnd);
+      // ── Node flash ────────────────────────────────────────────────────────────
+      if (e < T.nodes) {
+        const t     = (e - T.lines) / (T.nodes - T.lines);
         const flash = Math.sin(t * Math.PI);
-
-        // full constellation
         ctx.lineWidth   = 0.8;
-        ctx.strokeStyle = GLOW;
-        drawGlow(GLOW, 8 + 16 * flash);
+        ctx.strokeStyle = ACCENT_A + '0.85)';
+        glow(8 + 20 * flash);
         ctx.beginPath();
-        nodes.forEach(node => {
-          ctx.moveTo(cx, cy);
-          ctx.lineTo(node.x, node.y);
-        });
+        nodes.forEach(nd => { ctx.moveTo(cx, cy); ctx.lineTo(nd.x, nd.y); });
         ctx.stroke();
-
-        // cross lines
-        ctx.strokeStyle = 'rgba(0, 200, 255, 0.12)';
-        ctx.lineWidth   = 0.5;
-        ctx.shadowBlur  = 0;
-        for (let i = 0; i < nodes.length; i++) {
-          for (let j = i + 1; j < nodes.length; j++) {
-            const ni = nodes[i], nj = nodes[j];
-            const dx = ni.x - nj.x, dy = ni.y - nj.y;
-            const dd = Math.sqrt(dx * dx + dy * dy);
-            if (dd < Math.min(w, h) * 0.22) {
-              ctx.beginPath();
-              ctx.moveTo(ni.x, ni.y);
-              ctx.lineTo(nj.x, nj.y);
-              ctx.stroke();
-            }
-          }
-        }
-
-        // nodes
-        nodes.forEach(node => {
-          drawGlow(GLOW, 20 * flash);
-          ctx.fillStyle = `rgba(255, 255, 255, ${0.5 + 0.5 * flash})`;
-          ctx.beginPath();
-          ctx.arc(node.x, node.y, 2 + 3 * flash, 0, Math.PI * 2);
-          ctx.fill();
+        noGlow();
+        ctx.strokeStyle = ACCENT_A + '0.08)';
+        ctx.lineWidth = 0.5;
+        crossPairs.forEach(([a, b]) => {
+          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
         });
-
-        // center
-        drawGlow(GLOW, 25);
+        nodes.forEach(nd => {
+          glow(24 * flash);
+          ctx.fillStyle = ACCENT_A + (0.5 + 0.5*flash) + ')';
+          ctx.beginPath(); ctx.arc(nd.x, nd.y, 2 + 3*flash, 0, Math.PI*2); ctx.fill();
+        });
+        glow(28);
         ctx.fillStyle = WHITE;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.restore();
-        animationFrameId = requestAnimationFrame(render);
-        return;
+        ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI*2); ctx.fill();
+        ctx.restore(); rafId = requestAnimationFrame(render); return;
       }
 
-      // ── Phase 5: Implosion ─────────────────────────────────────────────────
-      if (elapsed < timeline.implosionEnd) {
-        const t     = (elapsed - timeline.nodesEnd) / (timeline.implosionEnd - timeline.nodesEnd);
-        const eased = easeInExpo(t);
-
+      // ── Implosion ─────────────────────────────────────────────────────────────
+      if (e < T.implode) {
+        const t     = (e - T.nodes) / (T.implode - T.nodes);
+        const ease  = iExp(t);
         ctx.lineWidth   = 0.8;
-        ctx.strokeStyle = GLOW;
-        drawGlow(GLOW, 10 * (1 - t));
-
+        ctx.strokeStyle = ACCENT_A + (1-t*0.3) + ')';
+        glow(8 * (1 - t));
         ctx.beginPath();
-        nodes.forEach(node => {
-          const dist = node.distance * (1 - eased);
-          const px   = cx + Math.cos(node.angle) * dist;
-          const py   = cy + Math.sin(node.angle) * dist;
+        nodes.forEach(nd => {
+          const dist = nd.distance * (1 - ease);
           ctx.moveTo(cx, cy);
-          ctx.lineTo(px, py);
+          ctx.lineTo(cx + Math.cos(nd.angle)*dist, cy + Math.sin(nd.angle)*dist);
         });
         ctx.stroke();
-
-        // shrinking center burst
-        const burst = (1 - eased) * 30;
-        drawGlow(GLOW, burst);
-        ctx.fillStyle = WHITE;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 2 + eased * 6, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.restore();
-        animationFrameId = requestAnimationFrame(render);
-        return;
+        glow(30 * ease);
+        ctx.fillStyle = ACCENT;
+        ctx.beginPath(); ctx.arc(cx, cy, 2 + ease*8, 0, Math.PI*2); ctx.fill();
+        ctx.restore(); rafId = requestAnimationFrame(render); return;
       }
 
-      // ── Phase 6: Text crystallization ──────────────────────────────────────
-      if (elapsed < timeline.textMorphEnd) {
-        if (!textGenerated) {
-          textParticles = generateTextParticles();
-          textGenerated = true;
-        }
-
-        const t     = (elapsed - timeline.implosionEnd) / (timeline.textMorphEnd - timeline.implosionEnd);
-        const eased = easeOutQuint(t);
-
-        drawGlow(GLOW, 6 * eased);
-        ctx.fillStyle = `rgba(180, 245, 255, ${eased})`;
-
+      // ── Text morph ────────────────────────────────────────────────────────────
+      if (e < T.morph) {
+        if (!textReady) { textParticles = buildTextParticles(); textReady = true; }
+        const t    = (e - T.implode) / (T.morph - T.implode);
+        const ease = oQ5(t);
+        glow(8 * ease, ACCENT);
+        ctx.fillStyle = ACCENT_A + ease + ')';
         textParticles.forEach(p => {
-          const px = cx + (p.originX - cx) * eased;
-          const py = cy + (p.originY - cy) * eased;
+          const px = cx + (p.originX - cx) * ease;
+          const py = cy + (p.originY - cy) * ease;
           ctx.fillRect(px, py, 1.5, 1.5);
         });
-
-        ctx.restore();
-        animationFrameId = requestAnimationFrame(render);
-        return;
+        ctx.restore(); rafId = requestAnimationFrame(render); return;
       }
 
-      // ── Phase 7: Hold ──────────────────────────────────────────────────────
-      if (elapsed < timeline.holdEnd) {
-        drawGlow(GLOW, 8);
-        ctx.fillStyle = TEXT_COLOR;
-        textParticles.forEach(p => {
-          ctx.fillRect(p.originX, p.originY, 1.5, 1.5);
-        });
-
-        ctx.restore();
-        animationFrameId = requestAnimationFrame(render);
-        return;
+      // ── Hold ──────────────────────────────────────────────────────────────────
+      if (e < T.hold) {
+        glow(10, ACCENT);
+        ctx.fillStyle = ACCENT;
+        textParticles.forEach(p => ctx.fillRect(p.originX, p.originY, 1.5, 1.5));
+        ctx.restore(); rafId = requestAnimationFrame(render); return;
       }
 
-      // ── Phase 8: Shatter ───────────────────────────────────────────────────
-      if (elapsed < timeline.shatterEnd) {
-        const t       = (elapsed - timeline.holdEnd) / (timeline.shatterEnd - timeline.holdEnd);
-        const opacity = 1 - easeInExpo(t);
-
-        drawGlow(GLOW, 5 * opacity);
-        ctx.fillStyle = `rgba(180, 245, 255, ${opacity})`;
-
+      // ── Shatter ───────────────────────────────────────────────────────────────
+      if (e < T.shatter) {
+        const t   = (e - T.hold) / (T.shatter - T.hold);
+        const op  = 1 - iExp(t);
+        glow(6 * op, ACCENT);
+        ctx.fillStyle = ACCENT_A + op + ')';
         textParticles.forEach(p => {
           p.originX += p.vx * t * 2.5;
           p.originY += p.vy * t * 2.5 + t * 4;
           ctx.fillRect(p.originX, p.originY, 1.5, 1.5);
         });
-
-        // Begin fading canvas at 80%
-        if (t > 0.78 && !fadeOutStarted) {
-          fadeOutStarted = true;
-          setOpacity(0);
+        if (t > 0.75 && !fadeStarted) {
+          fadeStarted = true;
+          setOverlayOpacity(0);
         }
-
-        ctx.restore();
-        animationFrameId = requestAnimationFrame(render);
-        return;
+        ctx.restore(); rafId = requestAnimationFrame(render); return;
       }
 
-      // ── Done ───────────────────────────────────────────────────────────────
+      // ── Done ──────────────────────────────────────────────────────────────────
       ctx.restore();
       sessionStorage.setItem('portfolio-loaded', 'true');
       onComplete();
     };
 
-    animationFrameId = requestAnimationFrame(render);
+    rafId = requestAnimationFrame(render);
 
-    const handleResize = () => {
-      w  = window.innerWidth;
-      h  = window.innerHeight;
-      cx = w / 2;
-      cy = h / 2;
-      canvas.width  = w;
-      canvas.height = h;
+    const onResize = () => {
+      w = window.innerWidth; h = window.innerHeight;
+      cx = w/2; cy = h/2;
+      canvas.width = w; canvas.height = h;
       nodes = buildNodes();
-      textGenerated = false;
+      textReady = false;
     };
-
-    window.addEventListener('resize', handleResize);
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', handleResize);
-    };
+    window.addEventListener('resize', onResize);
+    return () => { cancelAnimationFrame(rafId); window.removeEventListener('resize', onResize); };
   }, [onComplete]);
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-black"
+      className="fixed inset-0 z-[100]"
       style={{
-        opacity,
-        transition: opacity === 0 ? 'opacity 1s ease-out' : 'none',
-        pointerEvents: opacity === 0 ? 'none' : 'auto',
+        background: BG,
+        opacity: overlayOpacity,
+        transition: overlayOpacity === 0 ? 'opacity 1s ease-out' : 'none',
+        pointerEvents: overlayOpacity === 0 ? 'none' : 'auto',
       }}
+      data-testid="awakening-loader"
     >
-      <canvas
-        ref={canvasRef}
-        className="block w-full h-full"
-        data-testid="canvas-awakening-loader"
-      />
+      <canvas ref={canvasRef} className="block w-full h-full" />
     </div>
   );
 }
