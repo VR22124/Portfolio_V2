@@ -17,51 +17,35 @@ export default function Hero() {
   useEffect(() => {
     const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // Always ensure content is visible — set via gsap.set so they're never stuck hidden
+    const elements = [eyebrowRef.current, line1Ref.current, line2Ref.current, subtextRef.current, ctaRef.current];
+
     if (isReducedMotion) {
-      [eyebrowRef, line1Ref, line2Ref, subtextRef, ctaRef].forEach(r => {
-        if (r.current) gsap.set(r.current, { opacity: 1, y: 0 });
-      });
+      elements.forEach(el => { if (el) gsap.set(el, { opacity: 1, y: 0 }); });
       return;
     }
 
-    const tl = gsap.timeline({ delay: 0.4 });
+    // Set initial hidden state via GSAP (not inline CSS) so if JS fails, content is visible
+    gsap.set([eyebrowRef.current, subtextRef.current, ctaRef.current], { opacity: 0, y: 20 });
+    gsap.set([line1Ref.current, line2Ref.current], { opacity: 0, y: 32 });
 
-    // Eyebrow fades in first
-    tl.fromTo(eyebrowRef.current,
-      { opacity: 0, y: 16 },
-      { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }
-    );
+    const tl = gsap.timeline({ delay: 0.3 });
 
-    // Line 1 — rolls up from below clip
-    tl.fromTo(line1Ref.current,
-      { y: '105%' },
-      { y: '0%', duration: 0.9, ease: 'power3.out' },
-      '-=0.2'
-    );
+    tl.to(eyebrowRef.current, { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' })
+      .to(line1Ref.current,   { opacity: 1, y: 0, duration: 0.75, ease: 'power3.out' }, '-=0.15')
+      .to(line2Ref.current,   { opacity: 1, y: 0, duration: 0.75, ease: 'power3.out' }, '-=0.55')
+      .to(subtextRef.current, { opacity: 1, y: 0, duration: 0.6,  ease: 'power2.out' }, '-=0.35')
+      .to(ctaRef.current,     { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, '-=0.3');
 
-    // Line 2 — slight stagger after line 1
-    tl.fromTo(line2Ref.current,
-      { y: '105%' },
-      { y: '0%', duration: 0.9, ease: 'power3.out' },
-      '-=0.65'
-    );
-
-    // Subtext + CTAs fade in
-    tl.fromTo([subtextRef.current, ctaRef.current],
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out', stagger: 0.12 },
-      '-=0.4'
-    );
-
-    // Chevron fades out on first scroll
+    // Fade scroll indicator out on first scroll
     const scrollHide = ScrollTrigger.create({
       trigger: sectionRef.current,
       start: 'top top',
-      end: '+=120',
+      end: '+=200',
       scrub: true,
       onUpdate: (self) => {
         if (chevronRef.current) {
-          gsap.set(chevronRef.current, { opacity: 1 - self.progress * 3 });
+          chevronRef.current.style.opacity = String(Math.max(0, 1 - self.progress * 4));
         }
       }
     });
@@ -76,43 +60,34 @@ export default function Hero() {
     <section
       ref={sectionRef}
       className="relative min-h-[100dvh] flex items-center pt-24 pb-16"
-      style={{ contain: 'layout' }}
     >
-      {/* Localized scrim — lifts text off particle field on the left side only */}
+      {/* Localized left-to-right scrim — lifts text off particle field */}
       <div className="hero-text-scrim" aria-hidden="true" />
 
       <div className="container-layout w-full relative z-10">
-        <div className="max-w-[640px]">
+        <div className="max-w-[620px]">
           {/* Eyebrow */}
-          <div ref={eyebrowRef} className="eyebrow mb-8" style={{ opacity: 0 }}>
+          <div ref={eyebrowRef} className="eyebrow mb-8">
             {data.hero.eyebrow}
           </div>
 
-          {/* Headline — each line wrapped in overflow:hidden clip for roll-up */}
+          {/* Headline */}
           <h1 className="text-hero font-display font-medium mb-8">
-            <span className="text-reveal-wrap">
-              <span ref={line1Ref} className="text-reveal-line text-[#f5f5f2]">
-                {data.hero.headlineLine1}
-              </span>
+            <span ref={line1Ref} className="block text-[#f5f5f2]">
+              {data.hero.headlineLine1}
             </span>
-            <span className="text-reveal-wrap">
-              <span ref={line2Ref} className="text-reveal-line text-[#8c8c94]">
-                {data.hero.headlineLine2}
-              </span>
+            <span ref={line2Ref} className="block text-[#8c8c94]">
+              {data.hero.headlineLine2}
             </span>
           </h1>
 
           {/* Subtext */}
-          <p
-            ref={subtextRef}
-            className="text-body text-[#8c8c94] max-w-[480px] mb-12"
-            style={{ opacity: 0 }}
-          >
+          <p ref={subtextRef} className="text-body text-[#8c8c94] max-w-[480px] mb-12">
             {data.hero.subtext}
           </p>
 
           {/* CTAs */}
-          <div ref={ctaRef} className="flex flex-wrap items-center gap-4" style={{ opacity: 0 }}>
+          <div ref={ctaRef} className="flex flex-wrap items-center gap-4">
             <a
               href={data.hero.ctaPrimary.target}
               className="bg-[#d4ff4f] text-[#08080a] px-8 py-4 font-medium text-sm rounded-[2px] hover:bg-[#c8f03d] transition-colors inline-block"
@@ -121,7 +96,7 @@ export default function Hero() {
             </a>
             <a
               href={data.hero.ctaSecondary.target}
-              className="border border-[#2e2e36] text-[#f5f5f2] px-8 py-4 font-medium text-sm rounded-[2px] hover:border-[#4a4a52] hover:text-[#f5f5f2] transition-colors inline-block"
+              className="border border-[#2e2e36] text-[#f5f5f2] px-8 py-4 font-medium text-sm rounded-[2px] hover:border-[#4a4a52] transition-colors inline-block"
             >
               {data.hero.ctaSecondary.label}
             </a>

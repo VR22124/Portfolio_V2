@@ -24,18 +24,21 @@ export default function Stats() {
       if (!isReducedMotion) {
         countersRef.current.forEach((counter, i) => {
           if (!counter) return;
-          const target = parseInt(data.stats[i].value, 10);
-          gsap.fromTo({ val: 0 },
-            { val: 0 },
+          const targetValue = parseInt(data.stats[i].value, 10);
+          // Animate innerHTML directly — the proven approach
+          gsap.fromTo(counter,
+            { innerHTML: 0 },
             {
-              val: target,
+              innerHTML: targetValue,
               duration: 1.4,
               ease: 'power2.out',
               delay: i * 0.1,
-              onUpdate: function() {
-                if (counter) counter.textContent = String(Math.round((this as any).targets()[0].val));
-              },
-              scrollTrigger: { trigger: sectionRef.current, start: 'top 85%', once: true }
+              snap: { innerHTML: 1 },
+              scrollTrigger: {
+                trigger: sectionRef.current,
+                start: 'top 85%',
+                once: true
+              }
             }
           );
         });
