@@ -11,16 +11,21 @@ function MilestoneContent({ item, align }: { item: JourneyItem; align: 'left' | 
   const toRight = align === 'right';
   return (
     <div style={{ textAlign: toRight ? 'right' : 'left' }}>
-      {/* Ghost year — large, barely visible */}
+      {/* Year — readable mono label */}
+      <div className="font-mono text-xs tracking-[0.16em] text-[#d4ff4f] mb-2">
+        {item.year}
+      </div>
+
+      {/* Ghost year — large atmospheric number behind title */}
       <div
-        className="font-display font-bold leading-none select-none"
+        className="font-display font-bold leading-none select-none pointer-events-none"
         style={{
           fontSize: 'clamp(52px, 7vw, 88px)',
           letterSpacing: '-0.04em',
           color: '#d4ff4f',
-          opacity: 0.08,
+          opacity: 0.18,
           lineHeight: 1,
-          marginBottom: '-0.1em',
+          marginBottom: '-0.15em',
         }}
         aria-hidden="true"
       >
@@ -349,14 +354,19 @@ export default function Journey() {
                   ref={el => { mobileContentRefs.current[i] = el; }}
                   style={{ opacity: 0 }}
                 >
+                  {/* Year — readable label */}
+                  <div className="font-mono text-xs tracking-[0.16em] text-[#d4ff4f] mb-2">
+                    {item.year}
+                  </div>
+
                   {/* Ghost year */}
                   <div
-                    className="font-display font-bold leading-none select-none"
+                    className="font-display font-bold leading-none select-none pointer-events-none"
                     style={{
                       fontSize: 'clamp(44px, 10vw, 60px)',
                       letterSpacing: '-0.04em',
                       color: '#d4ff4f',
-                      opacity: 0.1,
+                      opacity: 0.18,
                       lineHeight: 1,
                       marginBottom: '-0.05em',
                     }}
