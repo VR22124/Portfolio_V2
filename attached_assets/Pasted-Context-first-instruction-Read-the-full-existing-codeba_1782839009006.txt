@@ -1,0 +1,36 @@
+Context-first instruction: Read the full existing codebase before touching anything. Study the current Journey section structure, the existing milestone/timeline data, the color palette, typography, and the active WebGL background. Do not replace or interfere with the WebGL. All redesign work is purely HTML, CSS, and lightweight JS on top of it.
+
+Completely rebuild the Journey section with this concept — "The Chronicle".
+
+Core Layout — Alternating Split Timeline: A central vertical spine runs down the exact middle of the section — a thin, luminous line. Milestone entries alternate strictly left and right of this spine — odd entries anchor to the left, even entries to the right. Each entry connects to the spine via a thin horizontal connector line that ends in a glowing dot node on the spine itself. This creates a true bilateral timeline that feels like reading a story from both sides simultaneously.
+
+Each Milestone Entry contains:
+
+The year — large, bold, and prominent as the headline of the card
+A category tag (Origin, Milestone, Growth etc.) — minimal pill style
+The title — clean, sharp heading
+A short description — subtle, lighter weight
+Left-aligned entries have text flowing right-to-left toward the spine. Right-aligned entries flow left-to-right toward the spine. Both feel intentional and mirrored.
+Scroll Animation — The Critical Part:
+
+The central spine line should draw itself downward as the user scrolls — it grows from top to bottom progressively, only revealing as far as the user has scrolled. It should feel like the story is being written in real time.
+Each milestone entry starts completely invisible and offset — left entries slide in from the left, right entries slide in from the right — triggered precisely when they enter the viewport. Smooth, cubic easing. Not snappy, not bouncy — cinematic and deliberate.
+The connector line between the entry and the spine draws itself toward the spine node at the same moment the entry slides in.
+The spine node (dot) pulses once with a ripple effect when it becomes active as the user reaches it.
+The year number should fade in with a slight blur-to-sharp transition as each entry appears.
+Active State While Scrolling: As the user scrolls through, the currently visible milestone's spine node glows brighter than the rest. Past nodes remain lit but dimmer. Future nodes are dark/unlit. This gives a strong sense of progression and position within the journey.
+
+Typography & Feel:
+
+Year numbers: very large, slightly transparent ghost treatment behind the title — same as existing style but elevated
+Completely transparent backgrounds — no cards, no containers — the WebGL breathes through entirely
+No box shadows, no opaque panels
+Spacing between milestones should be generous — let the timeline breathe
+Mobile: On mobile, collapse the bilateral layout into a single-column timeline with the spine on the far left edge — all entries to the right of it. Scroll animations remain but simplified to fade-up only.
+
+Strict Rules:
+
+Reuse all existing milestone data from the codebase — do not hardcode new content
+No new canvas, no WebGL calls
+Animation via IntersectionObserver + CSS transitions only
+Zero opaque backgrounds anywhere in this section
