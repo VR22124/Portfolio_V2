@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "name": "Alex Rivera",
+    "role": "Full-Stack Developer",
+    "tagline": "I build systems that scale quietly.",
+    "loadingLabel": "ENTERING"
+  },
+  "hero": {
+    "eyebrow": "Available for select projects",
+    "headlineLine1": "I build the engine,",
+    "headlineLine2": "not just the dashboard.",
+    "subtext": "Full-stack developer specializing in scalable backend architecture and interfaces that don't get in the way.",
+    "ctaPrimary": { "label": "View Work", "target": "#projects" },
+    "ctaSecondary": { "label": "Get in Touch", "target": "#contact" }
+  },
+  "stats": [
+    { "value": "6", "suffix": "+", "label": "Years Building" },
+    { "value": "40", "suffix": "+", "label": "Projects Shipped" },
+    { "value": "12", "suffix": "", "label": "Production Systems" },
+    { "value": "3", "suffix": "", "label": "Countries Worked With" }
+  ],
+  "journey": [
+    { "year": "2019", "title": "First Line of Code", "description": "Started with HTML/CSS, broke things, kept going.", "tag": "Origin" },
+    { "year": "2020", "title": "First Freelance Client", "description": "Built a booking system for a local business. Got paid. Got hooked.", "tag": "Milestone" },
+    { "year": "2021", "title": "Joined a Startup", "description": "Learned what 'production' actually means under real users.", "tag": "Growth" },
+    { "year": "2023", "title": "Went Full-Stack Architect", "description": "Stopped just writing features. Started designing systems.", "tag": "Pivot" },
+    { "year": "2025", "title": "Independent Practice", "description": "Now building for a small portfolio of serious clients.", "tag": "Today" }
+  ],
+  "experience": [
+    {
+      "company": "Nimbus Systems",
+      "role": "Senior Full-Stack Engineer",
+      "period": "2023 — Present",
+      "description": "Leading backend architecture for a multi-tenant SaaS platform serving 200+ organizations.",
+      "highlights": ["Migrated monolith to modular services", "Cut p95 latency by 60%", "Built internal design system"]
+    },
+    {
+      "company": "Fieldnote Labs",
+      "role": "Full-Stack Developer",
+      "period": "2021 — 2023",
+      "description": "Owned product end-to-end for a field-operations tool used by logistics teams.",
+      "highlights": ["Shipped offline-first sync engine", "Reduced onboarding time by 40%", "Mentored 2 junior engineers"]
+    },
+    {
+      "company": "Freelance",
+      "role": "Web Developer",
+      "period": "2020 — 2021",
+      "description": "Built websites and small tools for local businesses and startups.",
+      "highlights": ["12 client projects delivered", "100% on-time delivery record"]
+    }
+  ],
+  "skills": [
+    { "name": "React", "icon": "SiReact", "category": "Frontend", "level": 95 },
+    { "name": "TypeScript", "icon": "SiTypescript", "category": "Language", "level": 90 },
+    { "name": "Node.js", "icon": "SiNodedotjs", "category": "Backend", "level": 92 },
+    { "name": "PostgreSQL", "icon": "SiPostgresql", "category": "Database", "level": 85 },
+    { "name": "Python", "icon": "SiPython", "category": "Language", "level": 80 },
+    { "name": "Docker", "icon": "SiDocker", "category": "Infra", "level": 75 },
+    { "name": "AWS", "icon": "SiAmazonaws", "category": "Infra", "level": 78 },
+    { "name": "GraphQL", "icon": "SiGraphql", "category": "API", "level": 82 },
+    { "name": "Tailwind CSS", "icon": "SiTailwindcss", "category": "Frontend", "level": 90 },
+    { "name": "Figma", "icon": "SiFigma", "category": "Design", "level": 70 },
+    { "name": "Redis", "icon": "SiRedis", "category": "Database", "level": 75 },
+    { "name": "Next.js", "icon": "SiNextdotjs", "category": "Frontend", "level": 88 }
+  ],
+  "projects": [
+    {
+      "id": "proj-01",
+      "title": "Ledger",
+      "subtitle": "Real-time financial reconciliation platform",
+      "description": "A multi-tenant system that reconciles transactions across 12 payment providers in real time, replacing a 6-hour nightly batch job.",
+      "tags": ["React", "Node.js", "PostgreSQL", "Redis"],
+      "year": "2025",
+      "link": "#",
+      "featured": true
+    },
+    {
+      "id": "proj-02",
+      "title": "Fieldnote",
+      "subtitle": "Offline-first field operations tool",
+      "description": "Lets logistics teams log inspections without signal and sync automatically when back online. Used daily by 800+ field agents.",
+      "tags": ["React Native", "GraphQL", "SQLite"],
+      "year": "2023",
+      "link": "#",
+      "featured": true
+    },
+    {
+      "id": "proj-03",
+      "title": "Arc",
+      "subtitle": "Internal design system & component library",
+      "description": "A token-driven design system adopted across 5 product teams, cutting new-feature build time by a third.",
+      "tags": ["TypeScript", "Storybook", "Figma"],
+      "year": "2024",
+      "link": "#",
+      "featured": false
+    },
+    {
+      "id": "proj-04",
+      "title": "Pulse",
+      "subtitle": "Observability dashboard for microservices",
+      "description": "Self-hosted alternative to Datadog for a 30-service architecture — built for a fifth of the cost.",
+      "tags": ["Next.js", "Python", "Docker"],
+      "year": "2024",
+      "link": "#",
+      "featured": false
+    }
+  ],
+  "howIWork": [
+    { "step": "01", "title": "Understand the real problem", "description": "Most requests aren't the actual problem. I ask until we find the one worth solving." },
+    { "step": "02", "title": "Design the system, not the screen", "description": "Interfaces are the last 10%. The architecture underneath is what determines if it scales." },
+    { "step": "03", "title": "Ship small, ship often", "description": "Working software in front of real users beats a perfect plan on a whiteboard." },
+    { "step": "04", "title": "Leave it better documented", "description": "Whoever inherits this code — including future me — should never have to guess why." }
+  ],
+  "principles": [
+    { "title": "Simplicity is a feature", "description": "Every dependency, abstraction, and clever trick is a future liability. I default to boring technology." },
+    { "title": "Slow is smooth, smooth is fast", "description": "Rushing architecture decisions costs 10x more time later. I take the time upfront." },
+    { "title": "Code is read more than written", "description": "I optimize for the next person reading this — who is usually me, six months from now." },
+    { "title": "Defaults matter", "description": "The right default setting prevents more bugs than the cleverest error handling." }
+  ],
+  "testimonials": [
+    { "quote": "Rebuilt our core data pipeline in three weeks. It hadn't been touched in two years because everyone was scared of it.", "author": "Priya N.", "role": "CTO, Nimbus Systems" },
+    { "quote": "The kind of engineer who tells you the feature is a bad idea before you waste a sprint on it.", "author": "Marcus T.", "role": "Founder, Fieldnote Labs" }
+  ],
+  "contact": {
+    "headline": "Let's build something that lasts.",
+    "subtext": "Currently taking on a small number of new projects per quarter.",
+    "email": "hello@alexrivera.dev",
+    "socials": [
+      { "label": "GitHub", "url": "https://github.com", "icon": "SiGithub" },
+      { "label": "LinkedIn", "url": "https://linkedin.com", "icon": "SiLinkedin" },
+      { "label": "Twitter", "url": "https://twitter.com", "icon": "SiX" }
+    ]
+  }
+}

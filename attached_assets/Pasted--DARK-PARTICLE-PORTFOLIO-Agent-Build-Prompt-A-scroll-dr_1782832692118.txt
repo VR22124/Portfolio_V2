@@ -1,0 +1,638 @@
+# DARK PARTICLE PORTFOLIO — Agent Build Prompt
+## A scroll-driven, WebGL-particle, dark-themed developer portfolio (Dala/Unseen Studio inspired motion language — original content & shape)
+
+> **Instructions for the agent:** This is a complete build specification for Replit.
+> Build a production-quality, dark-themed developer portfolio with a 3D particle hero,
+> scroll-scrubbed animation, and pinned section storytelling — in the visual language of
+> premium agency sites (Unseen Studio, Locomotive-style smooth scroll), but with 100%
+> original shapes, copy, and content. Do not reproduce any specific brand's exact 3D model,
+> logo, or copy. All content must be pulled from a single `data.json` file — never hardcoded.
+
+---
+
+## 0. Reference Direction (style language only — not 1:1 copy)
+
+The target *feel*: a near-black canvas where a 3D particle formation sits behind/within the
+hero, gently rotating and breathing on idle, then **morphing shape as the user scrolls** —
+particles flow from one formation into the next, synced precisely to scroll position rather
+than time. Sections are minimal, full-bleed, generously spaced, with large confident type
+and a loading counter on first paint. This is restrained, premium, technical — not flashy
+or maximalist. Think: a control room for someone's career, not a flyer.
+
+**What we are NOT copying:** Dala's literal brain mesh, their exact copy, their logo, their
+color of accent. We are copying the *system*: particle field + scroll-scrubbed morph +
+counted boot + pinned section reveals + dark minimal type-led layout.
+
+---
+
+## 1. Tech Stack (Replit-ready)
+
+| Layer | Technology | Why |
+|---|---|---|
+| Framework | React 18 + Vite | Fast HMR in Replit, simple deploy |
+| 3D / Particles | **Three.js** + `@react-three/fiber` + `@react-three/drei` | Industry standard for this exact effect |
+| Scroll engine | **GSAP** + `ScrollTrigger` + `ScrollSmoother` (or Lenis if GSAP club plugins unavailable) | Scroll-scrubbed animation is the core mechanic |
+| Styling | Plain CSS with CSS variables (no Tailwind — this design needs precise custom type control) | Full control over the premium minimal aesthetic |
+| Icons / Logos | `react-icons` (includes `react-icons/si` — Simple Icons set with real brand logos: React, Node, TypeScript, Python, PostgreSQL, Docker, AWS, Figma, etc.) | Gives you **actual real tool logos** driven by a string key in JSON |
+| Fonts | Google Fonts: a tight grotesque sans (e.g. `Neue Montreal`-style — use `Space Grotesk` as the closest free equivalent) + a body sans (`Inter`) | Type-led premium feel |
+| Data | `src/data.json` | Single source of truth — editing this file reflows the entire site |
+
+**Install commands for Replit:**
+```bash
+npm create vite@latest . -- --template react
+npm install three @react-three/fiber @react-three/drei gsap react-icons
+```
+
+---
+
+## 2. Data Structure — `src/data.json`
+
+Every visible string, image, and logo key comes from here. The agent must wire 100% of
+content to this file — changing it must reflow the entire site with zero code changes.
+
+```json
+{
+  "meta": {
+    "name": "Alex Rivera",
+    "role": "Full-Stack Developer",
+    "tagline": "I build systems that scale quietly.",
+    "loadingLabel": "ENTERING",
+    "favicon": "/favicon.svg"
+  },
+  "hero": {
+    "eyebrow": "Available for select projects",
+    "headlineLine1": "I build the engine,",
+    "headlineLine2": "not just the dashboard.",
+    "subtext": "Full-stack developer specializing in scalable backend architecture and interfaces that don't get in the way.",
+    "ctaPrimary": { "label": "View Work", "target": "#projects" },
+    "ctaSecondary": { "label": "Get in Touch", "target": "#contact" }
+  },
+  "stats": [
+    { "value": "6", "suffix": "+", "label": "Years Building" },
+    { "value": "40", "suffix": "+", "label": "Projects Shipped" },
+    { "value": "12", "suffix": "", "label": "Production Systems" },
+    { "value": "3", "suffix": "", "label": "Countries Worked With" }
+  ],
+  "journey": [
+    { "year": "2019", "title": "First Line of Code", "description": "Started with HTML/CSS, broke things, kept going.", "tag": "Origin" },
+    { "year": "2020", "title": "First Freelance Client", "description": "Built a booking system for a local business. Got paid. Got hooked.", "tag": "Milestone" },
+    { "year": "2021", "title": "Joined a Startup", "description": "Learned what 'production' actually means under real users.", "tag": "Growth" },
+    { "year": "2023", "title": "Went Full-Stack Architect", "description": "Stopped just writing features. Started designing systems.", "tag": "Pivot" },
+    { "year": "2025", "title": "Independent Practice", "description": "Now building for a small portfolio of serious clients.", "tag": "Today" }
+  ],
+  "experience": [
+    {
+      "company": "Nimbus Systems",
+      "role": "Senior Full-Stack Engineer",
+      "period": "2023 — Present",
+      "description": "Leading backend architecture for a multi-tenant SaaS platform serving 200+ organizations.",
+      "highlights": ["Migrated monolith to modular services", "Cut p95 latency by 60%", "Built internal design system"]
+    },
+    {
+      "company": "Fieldnote Labs",
+      "role": "Full-Stack Developer",
+      "period": "2021 — 2023",
+      "description": "Owned product end-to-end for a field-operations tool used by logistics teams.",
+      "highlights": ["Shipped offline-first sync engine", "Reduced onboarding time by 40%", "Mentored 2 junior engineers"]
+    },
+    {
+      "company": "Freelance",
+      "role": "Web Developer",
+      "period": "2020 — 2021",
+      "description": "Built websites and small tools for local businesses and startups.",
+      "highlights": ["12 client projects delivered", "100% on-time delivery record"]
+    }
+  ],
+  "skills": [
+    { "name": "React", "icon": "SiReact", "category": "Frontend", "level": 95 },
+    { "name": "TypeScript", "icon": "SiTypescript", "category": "Language", "level": 90 },
+    { "name": "Node.js", "icon": "SiNodedotjs", "category": "Backend", "level": 92 },
+    { "name": "PostgreSQL", "icon": "SiPostgresql", "category": "Database", "level": 85 },
+    { "name": "Python", "icon": "SiPython", "category": "Language", "level": 80 },
+    { "name": "Docker", "icon": "SiDocker", "category": "Infra", "level": 75 },
+    { "name": "AWS", "icon": "SiAmazonaws", "category": "Infra", "level": 78 },
+    { "name": "GraphQL", "icon": "SiGraphql", "category": "API", "level": 82 },
+    { "name": "Tailwind CSS", "icon": "SiTailwindcss", "category": "Frontend", "level": 90 },
+    { "name": "Figma", "icon": "SiFigma", "category": "Design", "level": 70 },
+    { "name": "Redis", "icon": "SiRedis", "category": "Database", "level": 75 },
+    { "name": "Next.js", "icon": "SiNextdotjs", "category": "Frontend", "level": 88 }
+  ],
+  "projects": [
+    {
+      "id": "proj-01",
+      "title": "Ledger",
+      "subtitle": "Real-time financial reconciliation platform",
+      "description": "A multi-tenant system that reconciles transactions across 12 payment providers in real time, replacing a 6-hour nightly batch job.",
+      "image": "/projects/ledger-cover.jpg",
+      "tags": ["React", "Node.js", "PostgreSQL", "Redis"],
+      "year": "2025",
+      "link": "#",
+      "featured": true
+    },
+    {
+      "id": "proj-02",
+      "title": "Fieldnote",
+      "subtitle": "Offline-first field operations tool",
+      "description": "Lets logistics teams log inspections without signal and sync automatically when back online. Used daily by 800+ field agents.",
+      "image": "/projects/fieldnote-cover.jpg",
+      "tags": ["React Native", "GraphQL", "SQLite"],
+      "year": "2023",
+      "link": "#",
+      "featured": true
+    },
+    {
+      "id": "proj-03",
+      "title": "Arc",
+      "subtitle": "Internal design system & component library",
+      "description": "A token-driven design system adopted across 5 product teams, cutting new-feature build time by a third.",
+      "image": "/projects/arc-cover.jpg",
+      "tags": ["TypeScript", "Storybook", "Figma"],
+      "year": "2024",
+      "link": "#",
+      "featured": false
+    },
+    {
+      "id": "proj-04",
+      "title": "Pulse",
+      "subtitle": "Observability dashboard for microservices",
+      "description": "Self-hosted alternative to Datadog for a 30-service architecture — built for a fifth of the cost.",
+      "image": "/projects/pulse-cover.jpg",
+      "tags": ["Next.js", "Python", "Docker"],
+      "year": "2024",
+      "link": "#",
+      "featured": false
+    }
+  ],
+  "howIWork": [
+    { "step": "01", "title": "Understand the real problem", "description": "Most requests aren't the actual problem. I ask until we find the one worth solving." },
+    { "step": "02", "title": "Design the system, not the screen", "description": "Interfaces are the last 10%. The architecture underneath is what determines if it scales." },
+    { "step": "03", "title": "Ship small, ship often", "description": "Working software in front of real users beats a perfect plan on a whiteboard." },
+    { "step": "04", "title": "Leave it better documented", "description": "Whoever inherits this code — including future me — should never have to guess why." }
+  ],
+  "principles": [
+    { "title": "Simplicity is a feature", "description": "Every dependency, abstraction, and clever trick is a future liability. I default to boring technology." },
+    { "title": "Slow is smooth, smooth is fast", "description": "Rushing architecture decisions costs 10x more time later. I take the time upfront." },
+    { "title": "Code is read more than written", "description": "I optimize for the next person reading this — who is usually me, six months from now." },
+    { "title": "Defaults matter", "description": "The right default setting prevents more bugs than the cleverest error handling." }
+  ],
+  "testimonials": [
+    { "quote": "Rebuilt our core data pipeline in three weeks. It hadn't been touched in two years because everyone was scared of it.", "author": "Priya N.", "role": "CTO, Nimbus Systems" },
+    { "quote": "The kind of engineer who tells you the feature is a bad idea before you waste a sprint on it.", "author": "Marcus T.", "role": "Founder, Fieldnote Labs" }
+  ],
+  "contact": {
+    "headline": "Let's build something that lasts.",
+    "subtext": "Currently taking on a small number of new projects per quarter.",
+    "email": "hello@alexrivera.dev",
+    "socials": [
+      { "label": "GitHub", "url": "https://github.com", "icon": "SiGithub" },
+      { "label": "LinkedIn", "url": "https://linkedin.com", "icon": "SiLinkedin" },
+      { "label": "Twitter", "url": "https://twitter.com", "icon": "SiX" }
+    ]
+  }
+}
+```
+
+**Logo system rule for the agent:** every `icon` field is a literal `react-icons/si` export name.
+Render dynamically:
+```jsx
+import * as SiIcons from 'react-icons/si';
+const Icon = SiIcons[skill.icon];
+return <Icon size={32} color="currentColor" />;
+```
+This means typing `"SiReact"` in the JSON renders the actual official React logo, `"SiPostgresql"`
+renders the actual Postgres elephant, etc. **Never use generic placeholder icons for tools** —
+always resolve through this dynamic `react-icons/si` lookup so swapping the JSON string is the
+only thing required to change a logo.
+
+**Project images:** all `image` fields point to `/public/projects/*.jpg`. Ship 4 placeholder
+images (solid dark gradient + project initial, generated via CSS/Canvas if no real image exists)
+so the layout never breaks before the user supplies real screenshots.
+
+---
+
+## 3. Visual Design System
+
+### 3.1 Color Palette
+
+```css
+:root {
+  --bg-base:        #08080a;   /* near-black canvas */
+  --bg-elevated:     #111114;   /* card backgrounds */
+  --bg-elevated-2:   #18181c;   /* hover state */
+
+  --text-primary:    #f5f5f2;   /* off-white, not pure white */
+  --text-secondary:  #8c8c94;   /* muted gray for body copy */
+  --text-tertiary:   #4a4a52;   /* labels, eyebrow text */
+
+  --accent:          #d4ff4f;   /* single accent — acid lime, used sparingly */
+  --accent-dim:      #8a9c3a;   /* dimmed accent for borders/hover */
+
+  --border:          #1f1f24;
+  --border-bright:   #2e2e36;
+
+  --particle-color:  #d4ff4f;   /* matches accent — particle field tint */
+}
+```
+
+**Design law: one accent color only.** Everything else is grayscale. The lime only appears on:
+the particle field, primary CTA buttons, active nav states, and hover underlines. This restraint
+is what makes the accent feel premium instead of decorative. (Agent: feel free to swap the
+accent hex if asked, but never introduce a second accent color.)
+
+### 3.2 Typography
+
+```css
+/* Load in index.html <head> */
+/* <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"> */
+
+--font-display: 'Space Grotesk', sans-serif;
+--font-body: 'Inter', sans-serif;
+
+/* Type scale — desktop */
+--text-hero: clamp(48px, 8vw, 120px);   /* hero headline, line-height 0.95, letter-spacing -0.03em */
+--text-h1:   clamp(36px, 5vw, 64px);    /* section headlines */
+--text-h2:   clamp(24px, 3vw, 36px);    /* card titles */
+--text-body: 17px;                       /* paragraph text, line-height 1.6 */
+--text-small: 13px;                      /* labels, eyebrows — uppercase, letter-spacing 0.12em */
+```
+
+Hero headline weight: 500 (medium, not bold — restraint over impact). Eyebrow labels always
+uppercase with wide letter-spacing, color `--text-tertiary`, prefixed with a small lime dot `●`.
+
+### 3.3 Spacing & Layout
+
+- Max content width: `1400px`, centered, with `64px` side padding (`24px` on mobile)
+- Section vertical padding: `160px` desktop / `80px` mobile — generous breathing room is core to the feel
+- Grid: 12-column CSS grid for project/skill layouts
+- Border-radius: `2px` only (sharp, technical, not soft/rounded — this is a deliberate choice against the generic rounded-card AI look)
+
+---
+
+## 4. The Particle System (Core Signature Element)
+
+This is the single most important piece — get this right and everything else can be simpler.
+
+### 4.1 Setup
+
+```jsx
+// ParticleField.jsx
+import { Canvas, useFrame } from '@react-three/fiber';
+import { useRef, useMemo } from 'react';
+import * as THREE from 'three';
+
+const PARTICLE_COUNT = 4000;
+
+// Define 4 formation states as point clouds — sphere, torus, scattered cube, DNA-helix-like spiral
+function generateFormation(type, count) {
+  const positions = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    let x, y, z;
+    if (type === 'sphere') {
+      const phi = Math.acos(-1 + (2 * i) / count);
+      const theta = Math.sqrt(count * Math.PI) * phi;
+      const r = 3.2;
+      x = r * Math.cos(theta) * Math.sin(phi);
+      y = r * Math.sin(theta) * Math.sin(phi);
+      z = r * Math.cos(phi);
+    } else if (type === 'torus') {
+      const u = Math.random() * Math.PI * 2;
+      const v = Math.random() * Math.PI * 2;
+      const R = 2.8, r = 1.1;
+      x = (R + r * Math.cos(v)) * Math.cos(u);
+      y = (R + r * Math.cos(v)) * Math.sin(u);
+      z = r * Math.sin(v);
+    } else if (type === 'grid') {
+      const side = Math.cbrt(count);
+      const idx = i % Math.pow(Math.ceil(side), 3);
+      x = ((idx % side) / side - 0.5) * 6;
+      y = (Math.floor(idx / side) % side / side - 0.5) * 6;
+      z = (Math.floor(idx / (side * side)) / side - 0.5) * 6;
+    } else { // helix
+      const t = (i / count) * Math.PI * 8;
+      const r = 2.5;
+      x = r * Math.cos(t);
+      y = (i / count) * 8 - 4;
+      z = r * Math.sin(t);
+    }
+    positions[i * 3] = x;
+    positions[i * 3 + 1] = y;
+    positions[i * 3 + 2] = z;
+  }
+  return positions;
+}
+```
+
+**Formation map (4 states, one per major scroll section):**
+1. `sphere` — Hero (idle, slow rotation)
+2. `helix` — Journey/Experience section (suggests a path/timeline)
+3. `grid` — Skills section (suggests structure/system)
+4. `torus` — Contact/closing section (suggests completion/loop)
+
+### 4.2 Scroll-Driven Morph (the signature mechanic)
+
+```jsx
+function ParticleMesh({ scrollProgress }) {
+  const meshRef = useRef();
+  const formations = useMemo(() => ({
+    sphere: generateFormation('sphere', PARTICLE_COUNT),
+    helix: generateFormation('helix', PARTICLE_COUNT),
+    grid: generateFormation('grid', PARTICLE_COUNT),
+    torus: generateFormation('torus', PARTICLE_COUNT),
+  }), []);
+
+  const currentPositions = useRef(new Float32Array(PARTICLE_COUNT * 3));
+
+  useFrame((state) => {
+    // Determine which two formations to interpolate between based on scrollProgress (0–1)
+    const stages = ['sphere', 'helix', 'grid', 'torus'];
+    const stageProgress = scrollProgress.current * (stages.length - 1);
+    const stageIndex = Math.min(Math.floor(stageProgress), stages.length - 2);
+    const localT = stageProgress - stageIndex;
+
+    const from = formations[stages[stageIndex]];
+    const to = formations[stages[stageIndex + 1]];
+
+    for (let i = 0; i < PARTICLE_COUNT * 3; i++) {
+      // Ease the interpolation — smoothstep
+      const eased = localT * localT * (3 - 2 * localT);
+      currentPositions.current[i] = from[i] + (to[i] - from[i]) * eased;
+    }
+
+    // Gentle idle rotation always applied on top
+    meshRef.current.rotation.y = state.clock.elapsedTime * 0.05;
+    meshRef.current.geometry.attributes.position.array = currentPositions.current;
+    meshRef.current.geometry.attributes.position.needsUpdate = true;
+  });
+
+  return (
+    <points ref={meshRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" count={PARTICLE_COUNT} array={currentPositions.current} itemSize={3} />
+      </bufferGeometry>
+      <pointsMaterial size={0.025} color="#d4ff4f" sizeAttenuation transparent opacity={0.85} />
+    </points>
+  );
+}
+```
+
+### 4.3 Wiring Scroll Progress (GSAP ScrollTrigger)
+
+```jsx
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+gsap.registerPlugin(ScrollTrigger);
+
+// In the main App component, after mount:
+const scrollProgress = useRef(0);
+
+useEffect(() => {
+  ScrollTrigger.create({
+    trigger: document.body,
+    start: 'top top',
+    end: 'bottom bottom',
+    scrub: 1, // 1 second smoothing lag — gives the "fluid" feel, never raw 1:1
+    onUpdate: (self) => {
+      scrollProgress.current = self.progress; // 0 to 1 across full page
+    },
+  });
+}, []);
+```
+
+Pass `scrollProgress` ref into the `<Canvas>` particle component as a prop (not state — using a
+ref avoids re-render thrash on every scroll tick, which is critical for 60fps).
+
+**Particle field positioning:** Fixed full-viewport background (`position: fixed; z-index: 0`),
+sits behind all content sections (`z-index: 1+`), with a subtle radial dark vignette overlay so
+particles fade near content edges and never compete with text legibility.
+
+### 4.4 Idle Behavior
+
+When `scrollProgress` is not actively changing (user paused), particles should still feel alive:
+add a small per-particle sine-wave jitter (`+= Math.sin(time + i) * 0.002`) on top of the morphed
+position, so the field breathes even at rest. This is what separates "premium" from "static."
+
+---
+
+## 5. Loading Sequence
+
+On first mount, before the particle field and content are visible:
+
+```
+┌─────────────────────────────┐
+│                              │
+│         [name initials]      │
+│                              │
+│           ENTERING           │
+│            47%                │  ← counts 0→100 over ~1.8s
+│      ▬▬▬▬▬▬▬▬░░░░░░░          │  ← thin lime progress bar
+│                              │
+└─────────────────────────────┘
+```
+
+- Pure black screen, centered content
+- Counter increments via `requestAnimationFrame`, easing out near the end (fast start, settle at 100)
+- On reaching 100%: counter fades, thin horizontal line expands to full width then splits/fades,
+  revealing the hero underneath with a 400ms crossfade
+- Total duration: 1.8–2.2s, **never longer** — this is a taste signal, not a delay tactic
+- Respect `prefers-reduced-motion`: skip straight to content with no counter if set
+- Store a `sessionStorage` flag so the loader only plays once per session, not on every internal nav
+
+---
+
+## 6. Page Sections (in order)
+
+All sections are full-bleed, sit above the fixed particle canvas, generous vertical padding per
+Section 3.3. Each section animates in via GSAP `ScrollTrigger` (fade + 24px translateY, triggered
+at `top 80%` of viewport, no scrub — these are simple reveal-on-enter, not scrubbed).
+
+### 6.1 Nav (fixed, persistent)
+- Top-left: name/initials wordmark
+- Top-right: section links (Work, Skills, Journey, Contact) + lime "Let's Talk" pill button
+- Background: transparent over hero, gains blurred dark background (`backdrop-filter: blur(12px)`)
+  once scrolled past hero — never fully opaque, always shows particle field ghosting through
+
+### 6.2 Hero
+- Eyebrow: `hero.eyebrow`
+- Headline: two lines, `hero.headlineLine1` / `headlineLine2`, large display type
+- Subtext: one sentence, `--text-secondary`, max-width 560px
+- Two CTAs: primary (lime fill) + secondary (ghost/outline)
+- Particle sphere formation visible and prominent behind/around this section
+- Scroll-down indicator at bottom: small animated chevron, fades out after first scroll
+
+### 6.3 Stats Strip
+- Thin horizontal band, 4 stat counters from `data.stats`
+- Numbers count up from 0 on scroll-into-view (GSAP `onEnter`, ~1.2s duration, ease `power2.out`)
+- Format: large lime number + suffix, small gray label below
+
+### 6.4 Journey (timeline)
+- Vertical timeline, left-aligned year markers connected by a thin vertical line
+- Each `journey` entry: year (lime, mono-spaced), title (display font), description, small tag pill
+- Line itself "draws in" via `stroke-dashoffset` animation scrubbed to scroll progress through this section
+- Particle helix formation active during this section
+
+### 6.5 Experience
+- Stacked cards, one per `experience` entry, alternating subtle left/right offset on desktop
+- Each card: company name (large), role + period (small caps), description, highlight bullets
+  with lime checkmarks
+- Cards have a thin `--border` outline that brightens to `--border-bright` on hover
+
+### 6.6 Skills (grid, with real logos)
+- Responsive grid (4 columns desktop, 2 mobile) of skill cards
+- Each card: real brand icon (via the `react-icons/si` dynamic lookup from Section 2), skill name,
+  category label, thin progress bar showing `level` value
+- On hover: card lifts 4px, icon color shifts from grayscale to full brand color (default state:
+  `filter: grayscale(1) opacity(0.6)`, hover: `filter: none`) — this is a nice restrained detail
+  that rewards interaction
+- Particle grid formation active during this section
+
+### 6.7 Featured Projects
+- Large format, 1-2 per row, image-led cards
+- Each card: project cover image (full bleed, subtle dark gradient overlay), title overlaid
+  bottom-left, subtitle, tag pills, year — click anywhere opens project (external link or modal)
+- Image has a subtle scale-up-on-hover (`transform: scale(1.04)`, transition 600ms ease) — classic
+  premium-agency hover, contained via `overflow: hidden` on parent
+- Non-featured projects (where `featured: false`) render in a smaller 3-column "More Work" grid
+  below the featured ones
+
+### 6.8 How I Work (process)
+- Horizontal-on-desktop / vertical-on-mobile, 4-step process from `howIWork`
+- Each step: large step number (outlined lime text, `-webkit-text-stroke`), title, description
+- Connected by a thin horizontal line that "fills" left-to-right as user scrolls through (scrubbed)
+
+### 6.9 Principles
+- 2x2 grid (or stacked on mobile) of principle cards from `principles`
+- Minimal — no icons here, just title (display font, medium weight) + description
+- Each card separated by hairline borders only, no background fill — let the particle field show through
+
+### 6.10 Testimonials
+- Simple, large quote display, one at a time, auto-rotating every 6s (pausable on hover)
+- Big lime quotation mark, quote text in display font at moderate size, author + role below
+- Small dot indicators at bottom to show position + allow manual navigation
+
+### 6.11 Contact (closing section)
+- Large centered headline from `contact.headline`
+- Subtext below
+- Large clickable email (mailto link), styled as if it were the hero headline — this is the
+  emotional close, give it weight
+- Social icons row below (using `react-icons/si` lookups same as skills)
+- Particle torus formation active here — suggests completion/full-circle
+- Footer: small copyright line + back-to-top arrow
+
+---
+
+## 7. Animation Reference Table
+
+| Event | Technique | Timing |
+|---|---|---|
+| Page load counter | `requestAnimationFrame` increment | 1.8–2.2s |
+| Loader → hero crossfade | CSS opacity transition | 400ms |
+| Particle formation morph | Scroll-scrubbed lerp (Section 4.3) | tied to scroll, `scrub: 1` |
+| Particle idle jitter | Per-frame sine offset | continuous, subtle |
+| Section reveal-on-enter | GSAP fade + translateY(24px→0) | 700ms, `power2.out`, triggered at `top 80%` |
+| Stat counter count-up | GSAP `onUpdate` numeric tween | 1.2s, `power2.out` |
+| Timeline line draw | `stroke-dashoffset` scrubbed to scroll | tied to scroll within section |
+| Process line fill | `scaleX` scrubbed to scroll | tied to scroll within section |
+| Project image hover | CSS `transform: scale()` | 600ms ease |
+| Skill icon hover | CSS `filter: grayscale()` toggle | 300ms |
+| Nav background on scroll | CSS `backdrop-filter` + opacity | 300ms, triggered past hero height |
+| Testimonial rotation | CSS opacity crossfade | 6s interval, 500ms transition |
+
+**Critical performance rule:** only animate `transform` and `opacity` via CSS/GSAP for anything
+outside the particle canvas — never animate `width`, `height`, `top`, `left` directly, this kills
+frame rate alongside a live WebGL canvas running simultaneously.
+
+---
+
+## 8. Accessibility & Responsiveness
+
+- `prefers-reduced-motion: reduce` →
+  - Skip loading counter entirely
+  - Particle field still renders but freezes formation at `sphere` (no scroll-morph), only keeps
+    minimal idle rotation
+  - All section reveal animations become instant (`opacity: 1`, no transform delay)
+- Keyboard navigation: all CTAs, nav links, and project cards are real `<a>`/`<button>` elements,
+  visible focus ring in `--accent` color
+- Color contrast: `--text-secondary` on `--bg-base` must pass WCAG AA for body text (verify ratio,
+  adjust lightness if needed — do not ship a contrast-failing gray)
+- Mobile (`< 768px`):
+  - Particle canvas renders at reduced `PARTICLE_COUNT` (1200 instead of 4000) for performance
+  - Hero type scales down via `clamp()`, nav collapses to hamburger
+  - Timeline becomes single-column, process steps stack vertically
+  - Disable the scroll-scrubbed morph's `scrub` smoothing lag on mobile (set `scrub: true` instead
+    of `scrub: 1`) since touch-scroll physics differ from desktop wheel scroll
+
+---
+
+## 9. File Structure (Replit project layout)
+
+```
+/
+├── index.html                 ← font links, meta tags
+├── public/
+│   └── projects/               ← project cover images (4 placeholders to start)
+├── src/
+│   ├── main.jsx
+│   ├── App.jsx                  ← orchestrates ScrollTrigger + renders all sections
+│   ├── data.json                ← ALL content — single source of truth
+│   ├── styles/
+│   │   └── global.css           ← CSS variables, type scale, resets
+│   ├── components/
+│   │   ├── ParticleField.jsx    ← Section 4
+│   │   ├── Loader.jsx           ← Section 5
+│   │   ├── Nav.jsx              ← Section 6.1
+│   │   ├── Hero.jsx             ← Section 6.2
+│   │   ├── Stats.jsx            ← Section 6.3
+│   │   ├── Journey.jsx          ← Section 6.4
+│   │   ├── Experience.jsx       ← Section 6.5
+│   │   ├── Skills.jsx           ← Section 6.6 (uses dynamic react-icons/si lookup)
+│   │   ├── Projects.jsx         ← Section 6.7
+│   │   ├── HowIWork.jsx         ← Section 6.8
+│   │   ├── Principles.jsx       ← Section 6.9
+│   │   ├── Testimonials.jsx     ← Section 6.10
+│   │   └── Contact.jsx          ← Section 6.11
+│   └── hooks/
+│       └── useScrollProgress.js ← wraps the ScrollTrigger ref pattern from 4.3
+└── package.json
+```
+
+---
+
+## 10. Launch Checklist for Agent
+
+- [ ] Editing any value in `src/data.json` reflows the corresponding section with zero code edits
+- [ ] Particle field renders behind all content, fixed position, never blocks interaction (set
+      `pointer-events: none` on the canvas wrapper)
+- [ ] Particle formation visibly morphs between sphere → helix → grid → torus as user scrolls
+      the full page, smoothly lerped (no popping/snapping between states)
+- [ ] Idle jitter keeps particles alive even when scroll is paused
+- [ ] Loading counter plays once per session, respects `prefers-reduced-motion`
+- [ ] All skill icons render the **actual real brand logo** via `react-icons/si` dynamic lookup —
+      test by changing a skill's `icon` field to a different `Si*` name and confirming it updates
+- [ ] All 11 sections present: Nav, Hero, Stats, Journey, Experience, Skills, Projects, How I Work,
+      Principles, Testimonials, Contact
+- [ ] Section reveal-on-scroll animations fire once, do not re-trigger jarringly on scroll-up
+- [ ] Stat counters count up only once, when first scrolled into view
+- [ ] Project image hover scale works, contained, no layout shift
+- [ ] Nav background blurs in only after scrolling past hero height
+- [ ] Mobile layout: particle count reduced, all sections stack cleanly, hamburger nav works
+- [ ] Lighthouse performance check: particle canvas does not drop page below 40fps scroll on a
+      mid-range device profile (reduce `PARTICLE_COUNT` further if needed)
+- [ ] Single accent color (`--accent`) used consistently — no stray second accent color anywhere
+- [ ] Zero hardcoded copy — search the codebase for any string that should have come from
+      `data.json` and didn't
+
+---
+
+## 11. Vibe Statement (For the Agent's Context)
+
+This should feel like the digital equivalent of a well-cut suit — quiet confidence, not noise.
+The particle field is the one moment of spectacle; everything else earns its place through
+restraint, generous whitespace, and precise type. If a section feels like it needs more
+decoration to feel finished, the type and spacing are wrong, not the decoration level.
+
+The benchmark test: a senior engineer or design lead at a serious company should look at this
+for 10 seconds and think "this person has taste," not "this person used a template."
+
+---
+
+*End of build specification. Begin implementation in Replit.*
