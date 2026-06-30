@@ -7,90 +7,100 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function Testimonials() {
   const sectionRef = useRef<HTMLElement>(null);
+  const quoteRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
 
+  // Auto-rotate
+  useEffect(() => {
+    if (paused) return;
+    const timer = setInterval(() => {
+      setActive(i => (i + 1) % data.testimonials.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [paused]);
+
+  // Entrance animation when section first comes into view
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.fromTo(sectionRef.current,
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1, y: 0, duration: 0.8, ease: 'power2.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%', once: true }
-        }
+        { opacity: 0, y: 28 },
+        { opacity: 1, y: 0, duration: 0.75, ease: 'power2.out',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 78%', once: true } }
       );
     }, sectionRef);
     return () => ctx.revert();
   }, []);
 
+  // Quote change animation — quote mark first, then text, then author
   useEffect(() => {
-    if (paused) return;
-    const id = setInterval(() => {
-      setActive(prev => (prev + 1) % data.testimonials.length);
-    }, 6000);
-    return () => clearInterval(id);
-  }, [paused]);
+    if (!quoteRef.current) return;
+    const q = quoteRef.current;
+    const quoteMark = q.querySelector('.quote-mark');
+    const quoteText = q.querySelector('.quote-text');
+    const quoteAuthor = q.querySelector('.quote-author');
+
+    gsap.timeline()
+      .to([quoteMark, quoteText, quoteAuthor], { opacity: 0, y: -8, duration: 0.2, stagger: 0.04 })
+      .set(q, {})
+      .to(quoteMark, { opacity: 1, y: 0, duration: 0.35, ease: 'back.out(1.5)' }, 0.25)
+      .to(quoteText, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 0.38)
+      .to(quoteAuthor, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 0.52);
+  }, [active]);
+
+  const t = data.testimonials[active];
 
   return (
     <section
       ref={sectionRef}
-      className="container-layout section-padding section-frame"
+      className="container-layout section-padding border-t border-[#1f1f24]"
       style={{ opacity: 0 }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
     >
-      <div
-        className="max-w-3xl mx-auto"
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-      >
-        {/* Big lime quote mark */}
+      <div className="eyebrow mb-16">What others say</div>
+
+      <div ref={quoteRef} className="max-w-3xl">
+        {/* Decorative quote mark */}
         <div
-          className="font-display font-bold text-[#d4ff4f] select-none mb-4 leading-none"
-          style={{ fontSize: 'clamp(64px, 10vw, 120px)', opacity: 0.4 }}
+          className="quote-mark font-display font-bold text-[#d4ff4f] mb-6 leading-none select-none"
+          style={{ fontSize: '80px', lineHeight: 1, opacity: 0 }}
           aria-hidden="true"
         >
-          &ldquo;
+          "
         </div>
 
-        {/* Quote carousel */}
-        <div className="relative" style={{ minHeight: 'clamp(120px, 20vw, 200px)' }}>
-          {data.testimonials.map((t, i) => (
-            <div
-              key={i}
-              className="absolute top-0 left-0 w-full transition-all duration-600"
-              style={{
-                opacity: i === active ? 1 : 0,
-                transform: i === active ? 'translateY(0)' : 'translateY(12px)',
-                pointerEvents: i === active ? 'auto' : 'none',
-                transitionDuration: '500ms',
-                transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-              }}
-            >
-              <p className="font-display text-2xl md:text-3xl text-[#f5f5f2] leading-snug mb-7">
-                {t.quote}
-              </p>
-              <div>
-                <div className="text-sm font-medium text-[#f5f5f2]">{t.author}</div>
-                <div className="text-xs text-[#4a4a52] mt-0.5">{t.role}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* Quote text */}
+        <blockquote
+          className="quote-text font-display font-medium text-[#f5f5f2] mb-10"
+          style={{ fontSize: 'clamp(20px, 2.8vw, 34px)', letterSpacing: '-0.02em', lineHeight: 1.3, opacity: 0 }}
+        >
+          {t.quote}
+        </blockquote>
 
-        {/* Dot indicators */}
-        <div className="flex items-center gap-2.5 mt-10">
-          {data.testimonials.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(i)}
-              className="h-[2px] rounded-none transition-all duration-400"
-              style={{
-                width: i === active ? 40 : 20,
-                background: i === active ? '#d4ff4f' : '#1f1f24',
-              }}
-              aria-label={`Testimonial ${i + 1}`}
-            />
-          ))}
+        {/* Author */}
+        <div className="quote-author flex flex-col gap-1" style={{ opacity: 0 }}>
+          <span className="text-sm font-medium text-[#f5f5f2]">{t.author}</span>
+          <span className="text-xs text-[#4a4a52] tracking-wide">{t.role}</span>
         </div>
+      </div>
+
+      {/* Dot navigation */}
+      <div className="flex items-center gap-3 mt-14">
+        {data.testimonials.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => { setActive(i); setPaused(true); }}
+            className="transition-all duration-300"
+            style={{
+              width: active === i ? '28px' : '6px',
+              height: '6px',
+              borderRadius: '3px',
+              background: active === i ? '#d4ff4f' : '#2e2e36',
+            }}
+            aria-label={`Testimonial ${i + 1}`}
+          />
+        ))}
       </div>
     </section>
   );

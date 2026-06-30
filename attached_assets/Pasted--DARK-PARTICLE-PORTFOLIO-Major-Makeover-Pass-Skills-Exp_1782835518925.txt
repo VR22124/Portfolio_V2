@@ -1,0 +1,162 @@
+# DARK PARTICLE PORTFOLIO — Major Makeover Pass
+## Skills, Experience, Journey, Section Rhythm & Motion System Overhaul
+
+> **Instructions for the agent:** The previous refinement pass didn't go far enough — several
+> sections need to be rebuilt, not adjusted. This pass requires real design effort, not
+> incremental tweaks. Study the interaction/motion quality of **Skiper UI** (skiper-ui.com),
+> **shadcn/ui**, **Aceternity UI**, and **Magic UI** before touching code — specifically their
+> text reveal components, hover-card treatments, bento/grid layouts, and scroll-triggered
+> reveals. The bar is "this looks like a site built by someone who studies those libraries
+> daily," not "this looks like a generic AI-generated portfolio." Do not ship anything that
+> looks like a flat card grid with a border and a hover-lift — that pattern is overused and
+> must not appear anywhere on this site after this pass.
+
+---
+
+## 1. Remove the Journey Section Entirely
+
+- Delete the Journey/timeline section completely — component, scroll triggers, particle-helix
+  tie-in, and its entry in `data.json` and the nav. Experience now directly follows Stats.
+- Re-check the particle formation map after removal — Journey owned the `helix` formation.
+  Reassign `helix` to play during Experience instead (or drop it and use a 3-formation map:
+  sphere → grid → torus, redistributing the morph evenly across the remaining sections), so the
+  morph timing still spans the whole page proportionally rather than rushing through one
+  formation.
+
+## 2. Skills Section — Complete Rebuild (No Cards)
+
+The flat card-grid pattern must be fully removed and replaced with something that feels
+custom-built. Pick a direction and execute it properly — do not half-implement multiple ideas.
+Strong options (agent should choose the best fit, or propose a hybrid):
+
+- **Marquee/orbit layout**: skill logos arranged in slow-rotating concentric rings or
+  horizontal infinite-scroll marquee rows (grouped by category, each row a different speed),
+  with the active/hovered icon scaling up, going full-color, and surfacing the skill name +
+  level inline — similar to the "infinite logo cloud" patterns seen in Aceternity/Magic UI.
+- **Interactive bento grid**: an asymmetric grid (not uniform equal-size cards) where 2-3
+  "featured" top skills get larger tiles with more detail (animated progress ring instead of a
+  bar, short context line), and the remaining skills sit in smaller, denser tiles — inspired by
+  shadcn/Aceternity bento-grid patterns, but no visible card borders; separate tiles using
+  spacing, subtle background tint differences, and the particle field showing through gaps
+  instead of stroke borders.
+- **Cursor-reactive cluster**: skill icons scattered in a loose organic cluster (not a strict
+  grid) that subtly repel/attract based on cursor proximity (a lightweight physics/spring
+  effect), with the nearest icon to the cursor enlarging and revealing its label/level.
+
+Whichever direction is chosen:
+- Replace the static progress bar with something more crafted — an animated radial/ring
+  progress indicator, or a number that counts up to the `level` value on reveal, paired with a
+  thin animated underline instead of a boxed bar.
+- Maintain the real `react-icons/si` brand-logo lookup system exactly as-is.
+- Entrance must be staggered and scroll-triggered, not all-at-once.
+- Category grouping should be visually clear without using bordered card containers to do it —
+  use typographic labels, spacing rhythm, or subtle layout zones instead.
+
+## 3. Experience Section — Complete Rebuild
+
+Current version is too plain and must be redesigned with real visual hierarchy and motion, not
+just refined. Approach:
+
+- Move away from "stacked bordered cards." Consider an **editorial/magazine-style layout**:
+  large company name as a dominant display-type element, role and period set as a small
+  structured meta-row beside or beneath it, description as a short editorial paragraph, and
+  highlight bullets presented as a clean inline list with custom markers (not generic
+  checkmarks) — closer to how Aceternity/Skiper present timeline or "work history" sections
+  with strong typographic contrast rather than container styling.
+- Add a **scroll-pinned or scroll-scrubbed transition** between experience entries — e.g. as the
+  user scrolls, the current company's content cross-fades/slides out as the next one slides in
+  within a pinned viewport, rather than all entries being stacked one after another. This gives
+  Experience a more "directed sequence" feeling similar to what was originally wanted from
+  Journey, since the two sections were doing overlapping jobs — Experience should now own that
+  narrative-through-scroll role.
+- Each transition between entries should use a real text-reveal technique (see Section 5) for
+  the company name, not a plain fade.
+
+## 4. Fix Section Spacing — Remove Abnormal Gaps
+
+- Audit every section boundary for inconsistent or excessive vertical gaps. Standardize on a
+  single section-padding system (e.g. one `--section-padding-y` CSS variable used everywhere)
+  rather than ad-hoc padding per component, so transitions between How I Work → Principles →
+  Testimonials → Contact (and all other adjacent sections) feel rhythmically consistent rather
+  than having visibly different amounts of empty space between them.
+- Specifically re-examine How I Work, Principles, and everything below it — confirm there's no
+  leftover margin/padding stacking from both the section's own bottom padding and the next
+  section's top padding combining into an oversized gap (a common bug — switch to padding only
+  on one side per boundary, or use a margin-collapse-safe pattern).
+
+## 5. How I Work, Principles & Everything Below — Redesign
+
+These currently read as flat, generic sections and need the same level of craft as the rest:
+
+- **How I Work**: rebuild the 4-step process as a horizontally-connected sequence with a
+  scroll-scrubbed progress indicator (the connecting line should already do this per the
+  original spec — confirm it's actually working) but add weight to each step via large
+  outlined numerals with a subtle parallax offset between the numeral and the text content as
+  the user scrolls past, so it doesn't read as a static list.
+- **Principles**: move away from the plain 2x2 grid. Consider a layout where each principle
+  is revealed full-width, one at a time, as the user scrolls (each taking a meaningful chunk of
+  scroll distance), with the title using a large character-stagger or line-reveal animation and
+  the description fading in just after — this turns a flat grid into a more editorial,
+  considered moment instead of four boxes dumped on the page.
+- **Testimonials**: ensure the quote transition uses an actual reveal animation (not a plain
+  crossfade) — e.g. the quotation mark scales/fades in first, then the quote text reveals via
+  line-mask, then author/role fades in last, staggered.
+- **Contact**: this is the emotional close — make sure the headline uses the strongest text
+  animation on the site (reserved specifically for this and the Hero headline) so the close
+  feels deliberate.
+
+## 6. Text Animation System — Implement Properly (Currently Missing)
+
+This was specified in the prior pass but does not appear to be implemented anywhere. Build a
+small reusable set of text-animation components/hooks now, and apply them across the site:
+
+- **Line-mask reveal**: text sits inside an `overflow: hidden` wrapper and translates up from
+  below into view, scroll-triggered. Use for every major section headline.
+- **Character-stagger reveal**: individual characters animate in with a slight stagger and
+  slight upward + opacity transition. Reserve for Hero headline, Contact headline, and
+  Principles titles only — this should feel like a rare, special moment, not omnipresent.
+- **Word-by-word reveal with blur**: words fade/sharpen in from a slight blur, staggered —
+  good for subtext/intro paragraphs under big headlines (a technique common in
+  Aceternity/Skiper hero sections).
+- **Scroll-linked underline/highlight draw**: for emphasized inline words or phrases, animate an
+  underline or highlight bar drawing in sync with scroll position, not on a timer.
+- Build these as small reusable components (e.g. `<RevealText>`, `<StaggerText>`,
+  `<BlurWords>`) so they're consistently applied rather than one-off implementations per
+  section.
+- All must respect `prefers-reduced-motion` (animate to final state instantly, no motion).
+
+## 7. Scroll Effects — General Quality Pass
+
+Current scroll-triggered reveals feel underwhelming. Improve:
+
+- Confirm every section's entrance animation has enough visual interest — plain
+  opacity+translateY(24px) is acceptable for minor elements (bullet points, small labels) but
+  section-level headlines and hero moments need the richer text-reveal treatments above, not the
+  generic fade.
+- Add scroll-velocity awareness where it fits — e.g. elements that translate slightly further or
+  faster when the user scrolls quickly versus slowly (GSAP `ScrollTrigger` exposes velocity via
+  `self.getVelocity()`), used sparingly for a couple of signature moments (Hero exit, Contact
+  entrance) rather than everywhere.
+- Ensure scroll-triggered animations only fire once on the way down and don't awkwardly
+  re-trigger or flicker when scrolling back up past a boundary — use `toggleActions` settings
+  deliberately (e.g. `play none none none` for one-shot reveals vs `play reverse play reverse`
+  only where a reversible effect is actually intended, like the pinned Experience sequence).
+- Double check scrub-based effects (particle morph, line draws, progress fills) feel smooth at
+  varying scroll speeds — test with both a slow controlled scroll and a fast flick-scroll.
+
+---
+
+## Priority Order
+
+1. Remove Journey section, reassign particle formation map (Section 1)
+2. Fix section spacing/gaps globally (Section 4) — quick structural win
+3. Build the text animation component system (Section 6) — everything else depends on it
+4. Skills section complete rebuild (Section 2)
+5. Experience section complete rebuild (Section 3)
+6. How I Work / Principles / Testimonials / Contact redesign (Section 5)
+7. General scroll-effects quality pass (Section 7)
+
+---
+
+*End of makeover spec. This is a real design pass — take the time to study the reference
+libraries' actual implementations before building, not just their visual end result.*

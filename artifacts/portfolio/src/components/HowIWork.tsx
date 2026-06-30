@@ -14,54 +14,48 @@ export default function HowIWork() {
     const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const ctx = gsap.context(() => {
-      gsap.fromTo(sectionRef.current!.querySelector('.section-eyebrow'),
-        { opacity: 0, y: 16 },
-        {
-          opacity: 1, y: 0, duration: 0.6, ease: 'power2.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%', once: true }
-        }
+      gsap.fromTo(sectionRef.current!.querySelector('.hiw-header'),
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 78%', once: true } }
       );
 
-      if (isReducedMotion) {
-        stepRefs.current.forEach(el => { if (el) gsap.set(el, { opacity: 1, y: 0 }); });
-        return;
-      }
-
-      // Steps stagger in
-      stepRefs.current.forEach((step, i) => {
-        if (!step) return;
-        gsap.fromTo(step,
-          { opacity: 0, y: 32 },
-          {
-            opacity: 1, y: 0,
-            duration: 0.7,
-            ease: 'power3.out',
-            delay: i * 0.1,
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top 75%',
-              once: true
-            }
-          }
-        );
-      });
-
-      // Connecting line fills left-to-right scrubbed to scroll
+      // Scroll-scrubbed connecting line
       if (lineRef.current) {
         gsap.fromTo(lineRef.current,
           { scaleX: 0 },
-          {
-            scaleX: 1,
-            transformOrigin: 'left center',
-            ease: 'none',
+          { scaleX: 1, transformOrigin: 'left center', ease: 'none',
             scrollTrigger: {
               trigger: sectionRef.current,
-              start: 'top 55%',
-              end: 'bottom 55%',
+              start: 'top 50%',
+              end: 'bottom 60%',
               scrub: 1,
             }
           }
         );
+      }
+
+      if (!isReducedMotion) {
+        stepRefs.current.forEach((step, i) => {
+          if (!step) return;
+          const numEl = step.querySelector('.step-num');
+          const contentEl = step.querySelector('.step-content');
+
+          if (numEl) {
+            gsap.fromTo(numEl,
+              { opacity: 0, y: 20 },
+              { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', delay: i * 0.1,
+                scrollTrigger: { trigger: step, start: 'top 82%', once: true } }
+            );
+          }
+          if (contentEl) {
+            gsap.fromTo(contentEl,
+              { opacity: 0, y: 16 },
+              { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', delay: i * 0.1 + 0.12,
+                scrollTrigger: { trigger: step, start: 'top 82%', once: true } }
+            );
+          }
+        });
       }
     }, sectionRef);
 
@@ -69,42 +63,49 @@ export default function HowIWork() {
   }, []);
 
   return (
-    <section
-      ref={sectionRef}
-      className="container-layout section-padding section-frame"
-    >
-      <div className="eyebrow section-eyebrow mb-16" style={{ opacity: 0 }}>The Process</div>
+    <section ref={sectionRef} className="container-layout section-padding">
+      <div className="hiw-header mb-20" style={{ opacity: 0 }}>
+        <div className="eyebrow mb-4">Process</div>
+        <h2 className="font-display font-medium text-[#f5f5f2] text-h1">How I work.</h2>
+      </div>
 
+      {/* Steps — horizontal on desktop */}
       <div className="relative">
-        {/* Connecting horizontal line — desktop only */}
-        <div className="hidden md:block absolute top-[42px] left-0 right-0 h-[1px] bg-[#1f1f24]">
-          <div ref={lineRef} className="h-full bg-[#d4ff4f] w-full origin-left" style={{ transform: 'scaleX(0)' }} />
+        {/* Connecting line — scrub animated */}
+        <div className="hidden md:block absolute top-[30px] left-12 right-12 h-[1px] bg-[#1f1f24]" aria-hidden="true">
+          <div ref={lineRef} className="absolute inset-0 bg-[#d4ff4f] origin-left" style={{ scaleX: 0 }} />
         </div>
 
-        <div className="grid md:grid-cols-4 gap-10 md:gap-6 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
           {data.howIWork.map((step, i) => (
             <div
               key={i}
               ref={el => { stepRefs.current[i] = el; }}
-              className="flex flex-col relative"
-              style={{ opacity: 0 }}
+              className="flex flex-col"
             >
-              {/* Dot on the line */}
-              <div className="hidden md:block absolute top-[36px] left-0 w-3 h-3 bg-[#08080a] border-2 border-[#d4ff4f]" aria-hidden="true" />
-
-              {/* Step number — outlined lime */}
-              <div
-                className="font-display text-6xl font-bold mb-8 md:mb-0 text-transparent select-none"
-                style={{ WebkitTextStroke: '1px #d4ff4f', lineHeight: 1 }}
-              >
-                {step.step}
+              {/* Outlined numeral — large, decorative */}
+              <div className="step-num mb-6" style={{ opacity: 0 }}>
+                <div
+                  className="font-display font-bold leading-none"
+                  style={{
+                    fontSize: 'clamp(48px, 5vw, 64px)',
+                    letterSpacing: '-0.04em',
+                    WebkitTextStroke: '1px rgba(212,255,79,0.3)',
+                    color: 'transparent',
+                  }}
+                  aria-hidden="true"
+                >
+                  {step.step}
+                </div>
               </div>
 
-              <div className="md:mt-14">
-                <h4 className="text-lg font-display text-[#f5f5f2] font-medium mb-3 leading-snug">
+              {/* Content */}
+              <div className="step-content" style={{ opacity: 0 }}>
+                <h3 className="font-display font-medium text-[#f5f5f2] mb-3"
+                    style={{ fontSize: '18px', letterSpacing: '-0.01em' }}>
                   {step.title}
-                </h4>
-                <p className="text-sm text-[#8c8c94] leading-relaxed">
+                </h3>
+                <p className="text-[#8c8c94]" style={{ fontSize: '15px', lineHeight: 1.65 }}>
                   {step.description}
                 </p>
               </div>

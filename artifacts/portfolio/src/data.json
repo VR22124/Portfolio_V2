@@ -7,8 +7,8 @@
   },
   "hero": {
     "eyebrow": "Available for select projects",
-    "headlineLine1": "I build the engine,",
-    "headlineLine2": "not just the dashboard.",
+    "headlineLine1": "I build things",
+    "typewriterPhrases": ["that scale.", "that last.", "for real users.", "with purpose.", "to endure."],
     "subtext": "Full-stack developer specializing in scalable backend architecture and interfaces that don't get in the way.",
     "ctaPrimary": { "label": "View Work", "target": "#projects" },
     "ctaSecondary": { "label": "Get in Touch", "target": "#contact" }
@@ -123,7 +123,7 @@
   ],
   "contact": {
     "headline": "Let's build something that lasts.",
-    "subtext": "Currently taking on a small number of new projects per quarter.",
+    "subtext": "Currently taking on a small number of new projects per quarter. If the problem is interesting, I'm listening.",
     "email": "hello@alexrivera.dev",
     "socials": [
       { "label": "GitHub", "url": "https://github.com", "icon": "SiGithub" },

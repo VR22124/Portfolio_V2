@@ -7,43 +7,59 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function Experience() {
   const sectionRef = useRef<HTMLElement>(null);
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const entryRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const ctx = gsap.context(() => {
-      // Eyebrow
-      gsap.fromTo(sectionRef.current!.querySelector('.section-eyebrow'),
-        { opacity: 0, y: 16 },
-        {
-          opacity: 1, y: 0, duration: 0.6, ease: 'power2.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%', once: true }
-        }
+      // Header
+      gsap.fromTo(sectionRef.current!.querySelector('.exp-header'),
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 78%', once: true } }
       );
 
-      if (isReducedMotion) {
-        cardRefs.current.forEach(el => { if (el) gsap.set(el, { opacity: 1, y: 0 }); });
-        return;
-      }
+      if (!isReducedMotion) {
+        entryRefs.current.forEach((entry) => {
+          if (!entry) return;
 
-      // Per-card stagger entrances
-      cardRefs.current.forEach((card, i) => {
-        if (!card) return;
-        gsap.fromTo(card,
-          { opacity: 0, y: 48 },
-          {
-            opacity: 1, y: 0,
-            duration: 0.8,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: card,
-              start: 'top 85%',
-              once: true
-            }
+          // Company name line-mask reveal
+          const company = entry.querySelector('.exp-company');
+          const meta = entry.querySelector('.exp-meta');
+          const desc = entry.querySelector('.exp-desc');
+          const highlights = entry.querySelectorAll('.exp-highlight');
+
+          if (company) {
+            gsap.fromTo(company,
+              { opacity: 0, y: 40, skewY: 1.5 },
+              { opacity: 1, y: 0, skewY: 0, duration: 0.85, ease: 'power3.out',
+                scrollTrigger: { trigger: entry, start: 'top 80%', once: true } }
+            );
           }
-        );
-      });
+          if (meta) {
+            gsap.fromTo(meta,
+              { opacity: 0, y: 12 },
+              { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out', delay: 0.15,
+                scrollTrigger: { trigger: entry, start: 'top 80%', once: true } }
+            );
+          }
+          if (desc) {
+            gsap.fromTo(desc,
+              { opacity: 0, y: 16 },
+              { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', delay: 0.25,
+                scrollTrigger: { trigger: entry, start: 'top 80%', once: true } }
+            );
+          }
+          if (highlights.length) {
+            gsap.fromTo(highlights,
+              { opacity: 0, x: -10 },
+              { opacity: 1, x: 0, duration: 0.45, ease: 'power2.out', stagger: 0.07, delay: 0.35,
+                scrollTrigger: { trigger: entry, start: 'top 80%', once: true } }
+            );
+          }
+        });
+      }
     }, sectionRef);
 
     return () => ctx.revert();
@@ -51,50 +67,79 @@ export default function Experience() {
 
   return (
     <section
+      id="experience"
       ref={sectionRef}
-      className="container-layout section-padding section-frame"
+      className="container-layout section-padding"
     >
-      <div className="eyebrow section-eyebrow mb-14" style={{ opacity: 0 }}>Experience</div>
+      {/* Header */}
+      <div className="exp-header mb-20" style={{ opacity: 0 }}>
+        <div className="eyebrow mb-4">Experience</div>
+        <h2 className="font-display font-medium text-[#f5f5f2] text-h1">
+          Where I've worked.
+        </h2>
+      </div>
 
-      <div className="flex flex-col gap-5 max-w-4xl">
+      {/* Entries — editorial magazine style */}
+      <div className="flex flex-col">
         {data.experience.map((exp, i) => (
           <div
             key={i}
-            ref={el => { cardRefs.current[i] = el; }}
-            className="group relative p-8 md:p-10 border border-[#1f1f24] bg-[#111114]/60 backdrop-blur-sm rounded-[2px] transition-all duration-500 hover:border-[#2e2e36] hover:bg-[#111114] cursor-default"
-            style={{ opacity: 0 }}
+            ref={el => { entryRefs.current[i] = el; }}
+            className="group py-14 border-t border-[#1f1f24] last:border-b"
           >
-            {/* Subtle left accent line on hover */}
-            <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#d4ff4f] scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-bottom rounded-[2px]" />
+            <div className="flex flex-col md:flex-row md:items-start gap-8 md:gap-16">
 
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 mb-5">
-              <div>
-                <h3 className="text-2xl md:text-3xl font-display text-[#f5f5f2] font-medium mb-1 leading-tight">
-                  {exp.company}
-                </h3>
-                <div className="text-sm font-medium text-[#8c8c94] tracking-wide uppercase" style={{ letterSpacing: '0.06em' }}>
-                  {exp.role}
+              {/* Left — company + meta */}
+              <div className="md:w-80 shrink-0">
+                {/* Huge company name */}
+                <div className="overflow-hidden mb-4">
+                  <h3
+                    className="exp-company font-display font-bold text-[#f5f5f2] leading-none"
+                    style={{
+                      fontSize: 'clamp(32px, 4.5vw, 60px)',
+                      letterSpacing: '-0.03em',
+                      opacity: 0,
+                    }}
+                  >
+                    {exp.company}
+                  </h3>
+                </div>
+
+                {/* Role + Period meta row */}
+                <div className="exp-meta flex flex-col gap-1.5" style={{ opacity: 0 }}>
+                  <span className="text-sm font-medium text-[#d4ff4f] tracking-wide">
+                    {exp.role}
+                  </span>
+                  <span className="text-xs font-mono text-[#4a4a52] tracking-widest">
+                    {exp.period}
+                  </span>
                 </div>
               </div>
-              <div className="text-sm font-mono text-[#4a4a52] shrink-0 pt-1">{exp.period}</div>
+
+              {/* Right — description + highlights */}
+              <div className="flex-1 md:pt-1">
+                <p
+                  className="exp-desc text-body text-[#8c8c94] mb-8 max-w-lg leading-relaxed"
+                  style={{ opacity: 0 }}
+                >
+                  {exp.description}
+                </p>
+
+                {/* Highlights — inline list with → markers */}
+                <div className="flex flex-wrap gap-x-6 gap-y-3">
+                  {exp.highlights.map((hl, j) => (
+                    <div
+                      key={j}
+                      className="exp-highlight flex items-center gap-2 text-sm text-[#8c8c94]"
+                      style={{ opacity: 0 }}
+                    >
+                      <span className="text-[#d4ff4f] text-xs" aria-hidden="true">→</span>
+                      {hl}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-
-            <p className="text-[#8c8c94] text-body mb-7 max-w-2xl leading-relaxed">{exp.description}</p>
-
-            <ul className="grid sm:grid-cols-2 gap-2.5">
-              {exp.highlights.map((hl, j) => (
-                <li key={j} className="flex items-start gap-3 text-sm text-[#8c8c94]">
-                  <svg
-                    className="w-4 h-4 text-[#d4ff4f] shrink-0 mt-0.5"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    strokeWidth="2" strokeLinecap="square"
-                  >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  <span className="group-hover:text-[#f5f5f2] transition-colors duration-300">{hl}</span>
-                </li>
-              ))}
-            </ul>
           </div>
         ))}
       </div>

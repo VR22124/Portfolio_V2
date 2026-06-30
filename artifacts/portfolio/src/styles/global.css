@@ -17,8 +17,9 @@
   --border:         #1f1f24;
   --border-bright:  #2e2e36;
   --particle-color: #d4ff4f;
+  --section-py:     120px;
 
-  --text-hero: clamp(44px, 7.5vw, 112px);
+  --text-hero: clamp(48px, 7.5vw, 112px);
   --text-h1: clamp(36px, 5vw, 64px);
   --text-h2: clamp(24px, 3vw, 36px);
   --text-body: 17px;
@@ -89,18 +90,15 @@ h1, h2, h3, h4, h5, h6, .font-display {
   }
 }
 
+/* Standardized section padding — one variable, used everywhere */
 .section-padding {
-  padding-top: 80px;
-  padding-bottom: 80px;
+  padding-top: var(--section-py);
+  padding-bottom: var(--section-py);
 }
-@media (min-width: 768px) {
-  .section-padding {
-    padding-top: 140px;
-    padding-bottom: 140px;
-  }
+@media (max-width: 767px) {
+  :root { --section-py: 80px; }
 }
 
-/* Section viewport rhythm — one clean frame per section */
 .section-frame {
   min-height: 100vh;
   display: flex;
@@ -108,9 +106,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   justify-content: center;
 }
 @media (max-width: 767px) {
-  .section-frame {
-    min-height: auto;
-  }
+  .section-frame { min-height: auto; }
 }
 
 .grid-12 {
@@ -119,25 +115,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   gap: 24px;
 }
 
-.border-technical {
-  border: 1px solid var(--border);
-  border-radius: 2px;
-}
-.border-technical:hover {
-  border-color: var(--border-bright);
-}
-
-/* ─── Text Reveal System ─── */
-.text-reveal-wrap {
-  overflow: hidden;
-  display: block;
-}
-.text-reveal-line {
-  display: block;
-  will-change: transform;
-}
-
-/* ─── Hero scrim — localized behind text, not full viewport ─── */
+/* ─── Hero scrim ─── */
 .hero-text-scrim {
   position: absolute;
   inset: 0;
@@ -174,19 +152,122 @@ h1, h2, h3, h4, h5, h6, .font-display {
   50% { transform: translateY(-18px) scale(1.08); }
 }
 
-/* ─── Skill progress bar ─── */
-.skill-bar {
-  width: 100%;
+/* ─── Scroll Progress Bar ─── */
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
   height: 2px;
-  background: var(--border);
-  overflow: hidden;
-}
-.skill-bar-fill {
-  height: 100%;
+  background: var(--accent);
+  z-index: 200;
   width: 0%;
-  background: var(--text-tertiary);
-  transition: background 0.3s;
+  transform-origin: left center;
+  pointer-events: none;
+  transition: none;
 }
+
+/* ─── Typewriter cursor ─── */
+.typewriter-cursor {
+  display: inline-block;
+  width: 3px;
+  height: 0.85em;
+  background: var(--accent);
+  margin-left: 2px;
+  vertical-align: middle;
+  border-radius: 1px;
+  animation: cursor-blink 1.1s step-end infinite;
+}
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ─── Marquee ─── */
+@keyframes marquee-ltr {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes marquee-rtl {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+.marquee-outer {
+  overflow: hidden;
+  position: relative;
+}
+.marquee-outer::before,
+.marquee-outer::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 100px;
+  z-index: 2;
+  pointer-events: none;
+}
+.marquee-outer::before {
+  left: 0;
+  background: linear-gradient(to right, var(--bg-base) 0%, transparent 100%);
+}
+.marquee-outer::after {
+  right: 0;
+  background: linear-gradient(to left, var(--bg-base) 0%, transparent 100%);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+.marquee-ltr { animation: marquee-ltr 38s linear infinite; }
+.marquee-rtl { animation: marquee-rtl 52s linear infinite; }
+.marquee-outer:hover .marquee-ltr,
+.marquee-outer:hover .marquee-rtl {
+  animation-play-state: paused;
+}
+
+/* ─── Nav pill ─── */
+.nav-pill-bg {
+  background: rgba(8, 8, 10, 0.55);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+.nav-pill-bg.scrolled {
+  background: rgba(8, 8, 10, 0.85);
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+/* ─── Loader styles ─── */
+.loader-corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+}
+.loader-corner::before,
+.loader-corner::after {
+  content: '';
+  position: absolute;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.loader-corners-visible .loader-corner::before,
+.loader-corners-visible .loader-corner::after {
+  opacity: 1;
+}
+.loader-corner-tl { top: 28px; left: 28px; }
+.loader-corner-tl::before { top: 0; left: 0; width: 100%; height: 1px; }
+.loader-corner-tl::after  { top: 0; left: 0; width: 1px; height: 100%; }
+.loader-corner-tr { top: 28px; right: 28px; }
+.loader-corner-tr::before { top: 0; right: 0; width: 100%; height: 1px; }
+.loader-corner-tr::after  { top: 0; right: 0; width: 1px; height: 100%; }
+.loader-corner-bl { bottom: 28px; left: 28px; }
+.loader-corner-bl::before { bottom: 0; left: 0; width: 100%; height: 1px; }
+.loader-corner-bl::after  { bottom: 0; left: 0; width: 1px; height: 100%; }
+.loader-corner-br { bottom: 28px; right: 28px; }
+.loader-corner-br::before { bottom: 0; right: 0; width: 100%; height: 1px; }
+.loader-corner-br::after  { bottom: 0; right: 0; width: 1px; height: 100%; }
 
 /* ─── Focus ring ─── */
 :focus-visible {
@@ -208,9 +289,5 @@ h1, h2, h3, h4, h5, h6, .font-display {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-  .text-reveal-line {
-    transform: translateY(0) !important;
-    opacity: 1 !important;
   }
 }
