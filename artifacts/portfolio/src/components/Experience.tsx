@@ -1,148 +1,421 @@
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useEffect, useRef, useState } from 'react';
 import data from '../data.json';
 
-gsap.registerPlugin(ScrollTrigger);
+type Exp = (typeof data.experience)[number];
+
+function SplitText({ text, isActive }: { text: string; isActive: boolean }) {
+  return (
+    <span role="text" aria-label={text}>
+      {text.split('').map((char, i) => (
+        <span
+          key={i}
+          aria-hidden="true"
+          style={{
+            display: 'inline-block',
+            opacity: isActive ? 1 : 0,
+            filter: isActive ? 'blur(0px)' : 'blur(14px)',
+            transform: isActive ? 'translateX(0px) translateY(0px)' : 'translateX(-30px) translateY(4px)',
+            transition: isActive
+              ? `opacity 0.65s ease ${i * 0.038}s, filter 0.65s ease ${i * 0.038}s, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.038}s`
+              : 'opacity 0.2s ease, filter 0.2s ease, transform 0.2s ease',
+            whiteSpace: char === ' ' ? 'pre' : 'normal',
+          }}
+        >
+          {char === ' ' ? '\u00A0' : char}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function Typewriter({
+  text,
+  isActive,
+  delay = 0,
+}: {
+  text: string;
+  isActive: boolean;
+  delay?: number;
+}) {
+  const [shown, setShown] = useState('');
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const itvRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (itvRef.current) clearInterval(itvRef.current);
+
+    if (!isActive) {
+      setShown('');
+      return;
+    }
+
+    let idx = 0;
+    timerRef.current = setTimeout(() => {
+      itvRef.current = setInterval(() => {
+        idx++;
+        setShown(text.slice(0, idx));
+        if (idx >= text.length && itvRef.current) clearInterval(itvRef.current);
+      }, 34);
+    }, delay * 1000);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (itvRef.current) clearInterval(itvRef.current);
+    };
+  }, [isActive, text, delay]);
+
+  const done = shown.length >= text.length;
+
+  return (
+    <span aria-label={text}>
+      <span aria-hidden="true">{shown}</span>
+      <span
+        aria-hidden="true"
+        style={{
+          display: 'inline-block',
+          width: '2px',
+          height: '0.85em',
+          background: '#d4ff4f',
+          marginLeft: '1px',
+          verticalAlign: 'text-bottom',
+          opacity: done ? 0 : 1,
+          transition: done ? 'opacity 0.4s ease 0.6s' : 'none',
+        }}
+      />
+    </span>
+  );
+}
+
+function DesktopChapter({ exp, isActive }: { exp: Exp; isActive: boolean }) {
+  return (
+    <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', paddingRight: '8rem' }}>
+      <h3
+        className="font-display font-bold leading-none"
+        style={{
+          fontSize: 'clamp(56px, 9vw, 130px)',
+          letterSpacing: '-0.035em',
+          color: '#f5f5f2',
+          marginBottom: '1.75rem',
+          lineHeight: 0.92,
+        }}
+      >
+        <SplitText text={exp.company} isActive={isActive} />
+      </h3>
+
+      <div
+        aria-hidden="true"
+        style={{
+          height: '1px',
+          backgroundColor: '#f5f5f2',
+          opacity: isActive ? 0.14 : 0,
+          width: isActive ? '100%' : '0%',
+          transition: isActive
+            ? 'width 1.05s cubic-bezier(0.16, 1, 0.3, 1) 0.2s, opacity 0.45s ease 0.2s'
+            : 'opacity 0.2s ease',
+          marginBottom: '2.5rem',
+        }}
+      />
+
+      <div style={{ marginBottom: '2rem' }}>
+        <div
+          style={{
+            color: '#d4ff4f',
+            fontWeight: 600,
+            fontSize: 'clamp(14px, 1.4vw, 20px)',
+            letterSpacing: '0.01em',
+            marginBottom: '0.45rem',
+            minHeight: '1.6em',
+          }}
+        >
+          <Typewriter text={exp.role} isActive={isActive} delay={0.5} />
+        </div>
+        <div
+          style={{
+            fontFamily: 'Menlo, monospace',
+            fontSize: '10px',
+            color: '#4a4a52',
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            opacity: isActive ? 1 : 0,
+            transition: isActive ? 'opacity 0.5s ease 1.05s' : 'opacity 0.15s ease',
+          }}
+        >
+          {exp.period}
+        </div>
+      </div>
+
+      <p
+        style={{
+          color: '#8c8c94',
+          fontSize: 'clamp(14px, 1.15vw, 17px)',
+          lineHeight: 1.85,
+          maxWidth: '520px',
+          marginBottom: '2.5rem',
+          opacity: isActive ? 1 : 0,
+          transform: isActive ? 'translateY(0)' : 'translateY(22px)',
+          transition: isActive
+            ? 'opacity 0.65s ease 0.88s, transform 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.88s'
+            : 'opacity 0.15s ease, transform 0.15s ease',
+        }}
+      >
+        {exp.description}
+      </p>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.625rem 2rem' }}>
+        {exp.highlights.map((hl, j) => (
+          <div
+            key={j}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '13px',
+              color: '#8c8c94',
+              opacity: isActive ? 1 : 0,
+              transform: isActive ? 'translateX(0)' : 'translateX(-20px)',
+              transition: isActive
+                ? `opacity 0.45s ease ${1.0 + j * 0.09}s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${1.0 + j * 0.09}s`
+                : 'opacity 0.15s ease, transform 0.15s ease',
+            }}
+          >
+            <span style={{ color: '#d4ff4f', fontSize: '10px', lineHeight: 1, flexShrink: 0 }}>→</span>
+            {hl}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MobileChapter({ exp, isActive }: { exp: Exp; isActive: boolean }) {
+  return (
+    <div>
+      <h3
+        className="font-display font-bold leading-none text-[#f5f5f2]"
+        style={{
+          fontSize: 'clamp(38px, 12vw, 58px)',
+          letterSpacing: '-0.03em',
+          marginBottom: '1rem',
+        }}
+      >
+        {exp.company}
+      </h3>
+      <div
+        style={{ height: '1px', backgroundColor: '#f5f5f2', opacity: 0.1, marginBottom: '1.25rem' }}
+      />
+      <div style={{ marginBottom: '1.25rem' }}>
+        <div style={{ color: '#d4ff4f', fontWeight: 600, fontSize: '14px', marginBottom: '0.3rem' }}>
+          {exp.role}
+        </div>
+        <div
+          style={{
+            fontFamily: 'Menlo, monospace',
+            fontSize: '10px',
+            color: '#4a4a52',
+            letterSpacing: '0.13em',
+            textTransform: 'uppercase',
+          }}
+        >
+          {exp.period}
+        </div>
+      </div>
+      <p style={{ color: '#8c8c94', fontSize: '14px', lineHeight: 1.8, marginBottom: '1.5rem' }}>
+        {exp.description}
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+        {exp.highlights.map((hl, j) => (
+          <div
+            key={j}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '13px',
+              color: '#8c8c94',
+              opacity: isActive ? 1 : 0,
+              transform: isActive ? 'translateX(0)' : 'translateX(-14px)',
+              transition: `opacity 0.4s ease ${j * 0.08}s, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) ${j * 0.08}s`,
+            }}
+          >
+            <span style={{ color: '#d4ff4f', fontSize: '10px', flexShrink: 0 }}>→</span>
+            {hl}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Experience() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const entryRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [activeChapter, setActiveChapter] = useState<number>(-1);
+  const [enteredChapters, setEnteredChapters] = useState<Set<number>>(new Set());
+  const wrapperRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check, { passive: true });
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   useEffect(() => {
     const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (isReducedMotion) {
+      setEnteredChapters(new Set(data.experience.map((_, i) => i)));
+      setActiveChapter(0);
+      return;
+    }
 
-    const ctx = gsap.context(() => {
-      // Header
-      gsap.fromTo(sectionRef.current!.querySelector('.exp-header'),
-        { opacity: 0, y: 24 },
-        { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 78%', once: true } }
+    const observers: IntersectionObserver[] = [];
+
+    wrapperRefs.current.forEach((el, i) => {
+      if (!el) return;
+
+      const threshold = isMobile ? 0.18 : 0.4;
+
+      const obs = new IntersectionObserver(
+        entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              setActiveChapter(i);
+              setEnteredChapters(prev => {
+                if (prev.has(i)) return prev;
+                const next = new Set(prev);
+                next.add(i);
+                return next;
+              });
+            }
+          });
+        },
+        { threshold }
       );
 
-      if (!isReducedMotion) {
-        entryRefs.current.forEach((entry) => {
-          if (!entry) return;
+      obs.observe(el);
+      observers.push(obs);
+    });
 
-          // Company name line-mask reveal
-          const company = entry.querySelector('.exp-company');
-          const meta = entry.querySelector('.exp-meta');
-          const desc = entry.querySelector('.exp-desc');
-          const highlights = entry.querySelectorAll('.exp-highlight');
-
-          if (company) {
-            gsap.fromTo(company,
-              { opacity: 0, y: 40, skewY: 1.5 },
-              { opacity: 1, y: 0, skewY: 0, duration: 0.85, ease: 'power3.out',
-                scrollTrigger: { trigger: entry, start: 'top 80%', once: true } }
-            );
-          }
-          if (meta) {
-            gsap.fromTo(meta,
-              { opacity: 0, y: 12 },
-              { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out', delay: 0.15,
-                scrollTrigger: { trigger: entry, start: 'top 80%', once: true } }
-            );
-          }
-          if (desc) {
-            gsap.fromTo(desc,
-              { opacity: 0, y: 16 },
-              { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', delay: 0.25,
-                scrollTrigger: { trigger: entry, start: 'top 80%', once: true } }
-            );
-          }
-          if (highlights.length) {
-            gsap.fromTo(highlights,
-              { opacity: 0, x: -10 },
-              { opacity: 1, x: 0, duration: 0.45, ease: 'power2.out', stagger: 0.07, delay: 0.35,
-                scrollTrigger: { trigger: entry, start: 'top 80%', once: true } }
-            );
-          }
-        });
-      }
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
+    return () => observers.forEach(o => o.disconnect());
+  }, [isMobile]);
 
   return (
-    <section
-      id="experience"
-      ref={sectionRef}
-      className="container-layout section-padding"
-    >
-      {/* Header */}
-      <div className="exp-header mb-20" style={{ opacity: 0 }}>
+    <section id="experience" className="relative">
+      {/* ── Right-edge vertical chapter indicator (desktop only) ── */}
+      <div
+        aria-hidden="true"
+        className="hidden md:flex"
+        style={{
+          position: 'fixed',
+          right: '2rem',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 30,
+          flexDirection: 'column',
+          gap: '10px',
+          alignItems: 'flex-end',
+        }}
+      >
+        {data.experience.map((_, i) => {
+          const isAct = activeChapter === i;
+          const isPast = i < activeChapter;
+          return (
+            <div
+              key={i}
+              style={{
+                height: '2px',
+                width: isAct ? '28px' : '8px',
+                borderRadius: '1px',
+                backgroundColor: isAct ? '#d4ff4f' : isPast ? '#3a3a44' : '#1c1c22',
+                boxShadow: isAct ? '0 0 10px 2px rgba(212,255,79,0.5)' : 'none',
+                transition: 'all 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            />
+          );
+        })}
+      </div>
+
+      {/* ── Mobile top progress bar ── */}
+      <div
+        aria-hidden="true"
+        className="md:hidden flex gap-1.5 px-6 pt-6 pb-2"
+      >
+        {data.experience.map((_, i) => (
+          <div
+            key={i}
+            style={{
+              flex: 1,
+              height: '2px',
+              borderRadius: '1px',
+              backgroundColor: i <= activeChapter ? '#d4ff4f' : '#1c1c22',
+              transition: 'background-color 0.4s ease',
+            }}
+          />
+        ))}
+      </div>
+
+      {/* ── Section header ── */}
+      <div
+        style={{
+          padding: 'clamp(4rem, 8vh, 7rem) 5vw clamp(2.5rem, 4vh, 4rem)',
+          maxWidth: '1400px',
+          margin: '0 auto',
+        }}
+      >
         <div className="eyebrow mb-4">Experience</div>
-        <h2 className="font-display font-medium text-[#f5f5f2] text-h1">
+        <h2
+          className="font-display font-medium text-[#f5f5f2]"
+          style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em' }}
+        >
           Where I've worked.
         </h2>
       </div>
 
-      {/* Entries — editorial magazine style */}
-      <div className="flex flex-col">
-        {data.experience.map((exp, i) => (
+      {/* ── Chapters ── */}
+      {data.experience.map((exp, i) => {
+        const isActive = enteredChapters.has(i);
+
+        if (isMobile) {
+          return (
+            <div
+              key={i}
+              ref={el => { wrapperRefs.current[i] = el; }}
+              style={{
+                padding: '3.5rem 5vw',
+                borderTop: '1px solid #1f1f24',
+                opacity: isActive ? 1 : 0,
+                transform: isActive ? 'translateY(0)' : 'translateY(36px)',
+                transition: 'opacity 0.7s ease, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            >
+              <MobileChapter exp={exp} isActive={isActive} />
+            </div>
+          );
+        }
+
+        return (
           <div
             key={i}
-            ref={el => { entryRefs.current[i] = el; }}
-            className="group py-14 border-t border-[#1f1f24] last:border-b"
+            ref={el => { wrapperRefs.current[i] = el; }}
+            style={{ minHeight: '100vh', position: 'relative' }}
           >
-            <div className="flex flex-col md:flex-row md:items-start gap-8 md:gap-16">
-
-              {/* Left — company + meta */}
-              <div className="md:w-80 shrink-0">
-                {/* Huge company name */}
-                <div className="overflow-hidden mb-4">
-                  <h3
-                    className="exp-company font-display font-bold text-[#f5f5f2] leading-none"
-                    style={{
-                      fontSize: 'clamp(32px, 4.5vw, 60px)',
-                      letterSpacing: '-0.03em',
-                      opacity: 0,
-                    }}
-                  >
-                    {exp.company}
-                  </h3>
-                </div>
-
-                {/* Role + Period meta row */}
-                <div className="exp-meta flex flex-col gap-1.5" style={{ opacity: 0 }}>
-                  <span className="text-sm font-medium text-[#d4ff4f] tracking-wide">
-                    {exp.role}
-                  </span>
-                  <span className="text-xs font-mono text-[#4a4a52] tracking-widest">
-                    {exp.period}
-                  </span>
-                </div>
-              </div>
-
-              {/* Right — description + highlights */}
-              <div className="flex-1 md:pt-1">
-                <p
-                  className="exp-desc text-body text-[#8c8c94] mb-8 max-w-lg leading-relaxed"
-                  style={{ opacity: 0 }}
-                >
-                  {exp.description}
-                </p>
-
-                {/* Highlights — inline list with → markers */}
-                <div className="flex flex-wrap gap-x-6 gap-y-3">
-                  {exp.highlights.map((hl, j) => (
-                    <div
-                      key={j}
-                      className="exp-highlight flex items-center gap-2 text-sm text-[#8c8c94]"
-                      style={{ opacity: 0 }}
-                    >
-                      <span className="text-[#d4ff4f] text-xs" aria-hidden="true">→</span>
-                      {hl}
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div
+              style={{
+                position: 'sticky',
+                top: 0,
+                height: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '0 5vw',
+              }}
+            >
+              <DesktopChapter exp={exp} isActive={isActive} />
             </div>
           </div>
-        ))}
-      </div>
+        );
+      })}
+
+      <div style={{ height: '5rem' }} />
     </section>
   );
 }
