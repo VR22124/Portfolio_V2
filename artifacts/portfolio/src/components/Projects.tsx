@@ -7,6 +7,8 @@ function pad(n: number) {
   return String(n + 1).padStart(2, '0');
 }
 
+const TOTAL = data.projects.length;
+
 interface RowProps {
   project: Project;
   index: number;
@@ -24,8 +26,8 @@ function IndexRow({
   onEnter, onLeave, onTap,
 }: RowProps) {
   const idx = pad(index);
-  const ruleDelay = `${index * 0.11}s`;
-  const contentDelay = `${index * 0.11 + 0.22}s`;
+  const ruleDelay   = `${index * 0.1}s`;
+  const contentDelay = `${index * 0.1 + 0.2}s`;
 
   return (
     <div
@@ -33,241 +35,402 @@ function IndexRow({
       onMouseLeave={onLeave}
       onClick={isMobile ? onTap : undefined}
       style={{
+        position: 'relative',
+        overflow: 'hidden',
         padding: '0 5vw',
-        opacity: isDimmed ? 0.3 : 1,
-        transition: 'opacity 0.35s ease',
+        opacity: isDimmed ? 0.28 : 1,
+        transform: isDimmed ? 'scale(0.995)' : 'scale(1)',
+        transition: 'opacity 0.4s ease, transform 0.4s ease',
         cursor: isMobile ? 'pointer' : 'default',
+        /* Subtle accent radial glow on hover */
+        background: isExpanded
+          ? 'radial-gradient(ellipse 60% 100% at 0% 50%, rgba(212,255,79,0.045) 0%, transparent 70%)'
+          : 'transparent',
       }}
     >
-      {/* Rule — draws left to right */}
+      {/* Left accent strip */}
       <div
         aria-hidden="true"
         style={{
-          height: '1px',
-          backgroundColor: '#1f1f24',
-          width: isRevealed ? '100%' : '0%',
-          transition: `width 0.75s cubic-bezier(0.16, 1, 0.3, 1) ${ruleDelay}`,
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: '2px',
+          background: '#d4ff4f',
+          transform: isExpanded ? 'scaleY(1)' : 'scaleY(0)',
+          transformOrigin: 'top',
+          transition: isExpanded
+            ? 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+            : 'transform 0.35s ease',
+          boxShadow: isExpanded ? '0 0 14px 2px rgba(212,255,79,0.4)' : 'none',
         }}
       />
 
-      {/* Main row */}
+      {/* Watermark numeral — enormous ghost behind content */}
       <div
+        aria-hidden="true"
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'clamp(1rem, 2.5vw, 2.5rem)',
-          padding: 'clamp(1.25rem, 2.25vh, 1.875rem) 0',
-          opacity: isRevealed ? 1 : 0,
-          transform: isRevealed ? 'translateY(0)' : 'translateY(16px)',
-          transition: `opacity 0.55s ease ${contentDelay}, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1) ${contentDelay}`,
+          position: 'absolute',
+          right: '4vw',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          fontFamily: 'var(--font-display, sans-serif)',
+          fontWeight: 800,
+          fontSize: 'clamp(90px, 17vw, 240px)',
+          lineHeight: 1,
+          letterSpacing: '-0.06em',
+          color: '#f5f5f2',
+          opacity: isExpanded ? 0.055 : 0.028,
+          transition: 'opacity 0.4s ease',
+          userSelect: 'none',
+          pointerEvents: 'none',
+          zIndex: 0,
         }}
+        className="font-display"
       >
-        {/* Ghost index number */}
-        <span
-          aria-hidden="true"
-          style={{
-            fontFamily: 'Menlo, monospace',
-            fontSize: 'clamp(18px, 2.2vw, 34px)',
-            fontWeight: 200,
-            letterSpacing: '-0.02em',
-            lineHeight: 1,
-            flexShrink: 0,
-            width: 'clamp(2.25rem, 3.5vw, 5rem)',
-            color: isExpanded ? '#d4ff4f' : '#252530',
-            textShadow: isExpanded ? '0 0 18px rgba(212,255,79,0.55)' : 'none',
-            transition: 'color 0.35s ease, text-shadow 0.35s ease',
-            userSelect: 'none',
-          }}
-        >
-          {idx}
-        </span>
-
-        {/* Project name */}
-        <div style={{ flex: 1, position: 'relative', minWidth: 0, overflow: 'visible' }}>
-          <h3
-            className="font-display"
-            style={{
-              fontWeight: 700,
-              fontSize: isExpanded
-                ? 'clamp(20px, 2.6vw, 40px)'
-                : 'clamp(26px, 4.5vw, 72px)',
-              letterSpacing: isExpanded ? '-0.025em' : '-0.04em',
-              color: '#f5f5f2',
-              lineHeight: 1,
-              margin: 0,
-              transition:
-                'font-size 0.45s cubic-bezier(0.16, 1, 0.3, 1), letter-spacing 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {project.title}
-          </h3>
-          {/* Accent underline draws on hover */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              bottom: '-2px',
-              left: 0,
-              height: '1px',
-              backgroundColor: '#d4ff4f',
-              width: isExpanded ? '100%' : '0%',
-              transition: isExpanded
-                ? 'width 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.08s'
-                : 'width 0.3s ease',
-            }}
-          />
-        </div>
-
-        {/* Year — hides on expand */}
-        <span
-          style={{
-            fontFamily: 'Menlo, monospace',
-            fontSize: '10px',
-            color: '#3a3a44',
-            letterSpacing: '0.12em',
-            flexShrink: 0,
-            opacity: isExpanded ? 0 : 1,
-            transition: 'opacity 0.2s ease',
-            userSelect: 'none',
-          }}
-        >
-          {project.year}
-        </span>
+        {idx}
       </div>
 
-      {/* Expanded accordion body */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateRows: isExpanded ? '1fr' : '0fr',
-          transition: 'grid-template-rows 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-        }}
-      >
-        <div style={{ overflow: 'hidden', minHeight: 0 }}>
-          <div
+      {/* Content above watermark */}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Rule — draws left to right */}
+        <div
+          aria-hidden="true"
+          style={{
+            height: '1px',
+            background: isExpanded
+              ? 'linear-gradient(to right, rgba(212,255,79,0.35) 0%, #1f1f24 40%)'
+              : '#1f1f24',
+            width: isRevealed ? '100%' : '0%',
+            transition: `width 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${ruleDelay}, background 0.4s ease`,
+          }}
+        />
+
+        {/* Main row */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'clamp(0.75rem, 2vw, 2.5rem)',
+            padding: 'clamp(1.5rem, 2.8vh, 2.25rem) 0',
+            opacity: isRevealed ? 1 : 0,
+            transform: isRevealed ? 'translateY(0)' : 'translateY(18px)',
+            transition: `opacity 0.6s ease ${contentDelay}, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${contentDelay}`,
+          }}
+        >
+          {/* Small index counter */}
+          <span
+            aria-hidden="true"
             style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile
-                ? '1fr'
-                : '1.1fr 2fr 1fr',
-              gap: isMobile ? '1.25rem' : 'clamp(1rem, 3vw, 3rem)',
-              paddingBottom: 'clamp(1.5rem, 3vh, 2.5rem)',
-              /* indent to align under project name (past the index number) */
-              paddingLeft: `calc(clamp(2.25rem, 3.5vw, 5rem) + clamp(1rem, 2.5vw, 2.5rem))`,
-              alignItems: 'start',
+              fontFamily: 'Menlo, monospace',
+              fontSize: 'clamp(11px, 1vw, 14px)',
+              fontWeight: 400,
+              letterSpacing: '0.08em',
+              lineHeight: 1,
+              flexShrink: 0,
+              width: 'clamp(2rem, 3vw, 4rem)',
+              color: isExpanded ? '#d4ff4f' : '#323238',
+              textShadow: isExpanded ? '0 0 20px rgba(212,255,79,0.7)' : 'none',
+              transition: 'color 0.35s ease, text-shadow 0.35s ease',
+              userSelect: 'none',
             }}
           >
-            {/* Left — subtitle / type label */}
-            <div
-              style={{
-                opacity: isExpanded ? 1 : 0,
-                transform: isExpanded ? 'translateY(0)' : 'translateY(10px)',
-                transition: isExpanded
-                  ? 'opacity 0.4s ease 0.18s, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.18s'
-                  : 'none',
-              }}
-            >
-              <p
+            {idx}
+          </span>
+
+          {/* Project name + underline */}
+          <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem', flexWrap: 'nowrap' }}>
+              <h3
+                className="font-display"
                 style={{
-                  fontFamily: 'Menlo, monospace',
-                  fontSize: '11px',
-                  color: '#6a6a74',
-                  letterSpacing: '0.06em',
-                  lineHeight: 1.6,
+                  fontWeight: 700,
+                  fontSize: isExpanded
+                    ? 'clamp(22px, 2.8vw, 44px)'
+                    : 'clamp(28px, 5vw, 80px)',
+                  letterSpacing: isExpanded ? '-0.025em' : '-0.045em',
+                  color: '#f5f5f2',
+                  lineHeight: 1,
                   margin: 0,
+                  transition:
+                    'font-size 0.5s cubic-bezier(0.16, 1, 0.3, 1), letter-spacing 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '100%',
                 }}
               >
-                {project.subtitle}
-              </p>
+                {project.title}
+              </h3>
+
+              {/* Featured indicator */}
+              {project.featured && !isExpanded && (
+                <span
+                  style={{
+                    flexShrink: 0,
+                    fontFamily: 'Menlo, monospace',
+                    fontSize: '9px',
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    color: '#d4ff4f',
+                    border: '1px solid rgba(212,255,79,0.3)',
+                    padding: '2px 6px',
+                    borderRadius: '2px',
+                    opacity: isExpanded ? 0 : 1,
+                    transition: 'opacity 0.2s ease',
+                    whiteSpace: 'nowrap',
+                    alignSelf: 'center',
+                  }}
+                >
+                  Featured
+                </span>
+              )}
             </div>
 
-            {/* Center — description */}
+            {/* Accent underline — draws on hover */}
             <div
+              aria-hidden="true"
               style={{
-                opacity: isExpanded ? 1 : 0,
-                transform: isExpanded ? 'translateY(0)' : 'translateY(10px)',
+                position: 'absolute',
+                bottom: '-3px',
+                left: 0,
+                height: '1px',
+                background: 'linear-gradient(to right, #d4ff4f, rgba(212,255,79,0.3))',
+                width: isExpanded ? '100%' : '0%',
                 transition: isExpanded
-                  ? 'opacity 0.4s ease 0.25s, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.25s'
-                  : 'none',
+                  ? 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.06s'
+                  : 'width 0.3s ease',
+              }}
+            />
+          </div>
+
+          {/* Year — far right, hidden on expand */}
+          <div
+            style={{
+              flexShrink: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              gap: '3px',
+              opacity: isExpanded ? 0 : 1,
+              transform: isExpanded ? 'translateX(6px)' : 'translateX(0)',
+              transition: 'opacity 0.25s ease, transform 0.25s ease',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'Menlo, monospace',
+                fontSize: '10px',
+                color: '#3a3a44',
+                letterSpacing: '0.1em',
+                userSelect: 'none',
               }}
             >
-              <p
-                style={{
-                  fontSize: '14px',
-                  color: '#8c8c94',
-                  lineHeight: 1.8,
-                  margin: 0,
-                }}
-              >
-                {project.description}
-              </p>
-            </div>
+              {project.year}
+            </span>
+            <span
+              style={{
+                fontFamily: 'Menlo, monospace',
+                fontSize: '9px',
+                color: '#252530',
+                letterSpacing: '0.06em',
+                userSelect: 'none',
+              }}
+            >
+              {idx} / {pad(TOTAL - 1)}
+            </span>
+          </div>
+        </div>
 
-            {/* Right — tags + View link */}
+        {/* Expanded accordion */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateRows: isExpanded ? '1fr' : '0fr',
+            transition: 'grid-template-rows 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        >
+          <div style={{ overflow: 'hidden', minHeight: 0 }}>
+            {/* Thin separator inside expanded area */}
+            <div
+              aria-hidden="true"
+              style={{
+                height: '1px',
+                background: 'linear-gradient(to right, rgba(212,255,79,0.15), transparent 60%)',
+                marginBottom: '1.75rem',
+                opacity: isExpanded ? 1 : 0,
+                transition: 'opacity 0.3s ease 0.1s',
+              }}
+            />
+
             <div
               style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-                alignItems: isMobile ? 'flex-start' : 'flex-end',
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '1fr 2.2fr 1fr',
+                gap: isMobile ? '1.5rem' : 'clamp(1.5rem, 3vw, 4rem)',
+                paddingBottom: 'clamp(2rem, 4vh, 3rem)',
+                paddingLeft: isMobile ? 0 : `calc(clamp(2rem, 3vw, 4rem) + clamp(0.75rem, 2vw, 2.5rem))`,
+                alignItems: 'start',
               }}
             >
+              {/* Left — subtitle */}
               <div
                 style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '0.375rem',
-                  justifyContent: isMobile ? 'flex-start' : 'flex-end',
-                }}
-              >
-                {project.tags.map((tag, j) => (
-                  <span
-                    key={tag}
-                    style={{
-                      fontSize: '10px',
-                      color: '#8c8c94',
-                      border: '1px solid #2a2a34',
-                      padding: '3px 9px',
-                      borderRadius: '2px',
-                      letterSpacing: '0.04em',
-                      opacity: isExpanded ? 1 : 0,
-                      transform: isExpanded ? 'translateY(0)' : 'translateY(6px)',
-                      transition: isExpanded
-                        ? `opacity 0.35s ease ${0.32 + j * 0.06}s, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${0.32 + j * 0.06}s`
-                        : 'none',
-                    }}
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              {/* View Project → */}
-              <a
-                href={project.link}
-                onClick={e => { if (project.link === '#') e.preventDefault(); }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  color: '#d4ff4f',
-                  textDecoration: 'none',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
                   opacity: isExpanded ? 1 : 0,
-                  transform: isExpanded ? 'translateX(0)' : 'translateX(10px)',
+                  transform: isExpanded ? 'translateY(0)' : 'translateY(12px)',
                   transition: isExpanded
-                    ? 'opacity 0.35s ease 0.5s, transform 0.35s ease 0.5s'
+                    ? 'opacity 0.45s ease 0.2s, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.2s'
                     : 'none',
                 }}
               >
-                View Project <span aria-hidden="true">→</span>
-              </a>
+                <div
+                  style={{
+                    fontFamily: 'Menlo, monospace',
+                    fontSize: '10px',
+                    color: '#d4ff4f',
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    marginBottom: '0.5rem',
+                    opacity: 0.7,
+                  }}
+                >
+                  About
+                </div>
+                <p
+                  style={{
+                    fontFamily: 'Menlo, monospace',
+                    fontSize: '12px',
+                    color: '#6a6a74',
+                    letterSpacing: '0.04em',
+                    lineHeight: 1.65,
+                    margin: 0,
+                  }}
+                >
+                  {project.subtitle}
+                </p>
+              </div>
+
+              {/* Center — description */}
+              <div
+                style={{
+                  opacity: isExpanded ? 1 : 0,
+                  transform: isExpanded ? 'translateY(0)' : 'translateY(12px)',
+                  transition: isExpanded
+                    ? 'opacity 0.45s ease 0.28s, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.28s'
+                    : 'none',
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: 'Menlo, monospace',
+                    fontSize: '10px',
+                    color: '#d4ff4f',
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    marginBottom: '0.5rem',
+                    opacity: 0.7,
+                  }}
+                >
+                  What it does
+                </div>
+                <p
+                  style={{
+                    fontSize: '14px',
+                    color: '#8c8c94',
+                    lineHeight: 1.85,
+                    margin: 0,
+                    maxWidth: '520px',
+                  }}
+                >
+                  {project.description}
+                </p>
+              </div>
+
+              {/* Right — stack + CTA */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1.25rem',
+                  alignItems: isMobile ? 'flex-start' : 'flex-end',
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontFamily: 'Menlo, monospace',
+                      fontSize: '10px',
+                      color: '#d4ff4f',
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      marginBottom: '0.5rem',
+                      opacity: 0.7,
+                      textAlign: isMobile ? 'left' : 'right',
+                    }}
+                  >
+                    Stack
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.35rem',
+                      justifyContent: isMobile ? 'flex-start' : 'flex-end',
+                    }}
+                  >
+                    {project.tags.map((tag, j) => (
+                      <span
+                        key={tag}
+                        style={{
+                          fontSize: '10px',
+                          color: '#8c8c94',
+                          border: '1px solid #282832',
+                          padding: '3px 9px',
+                          borderRadius: '2px',
+                          letterSpacing: '0.04em',
+                          background: 'rgba(255,255,255,0.02)',
+                          opacity: isExpanded ? 1 : 0,
+                          transform: isExpanded ? 'translateY(0)' : 'translateY(8px)',
+                          transition: isExpanded
+                            ? `opacity 0.35s ease ${0.35 + j * 0.065}s, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${0.35 + j * 0.065}s`
+                            : 'none',
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* View Project */}
+                <a
+                  href={project.link}
+                  onClick={e => { if (project.link === '#') e.preventDefault(); }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '11px',
+                    fontWeight: 500,
+                    color: '#d4ff4f',
+                    textDecoration: 'none',
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    fontFamily: 'Menlo, monospace',
+                    opacity: isExpanded ? 1 : 0,
+                    transform: isExpanded ? 'translateX(0)' : 'translateX(12px)',
+                    transition: isExpanded
+                      ? 'opacity 0.35s ease 0.55s, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.55s'
+                      : 'none',
+                    borderBottom: '1px solid rgba(212,255,79,0.3)',
+                    paddingBottom: '2px',
+                  }}
+                >
+                  View Project
+                  <span aria-hidden="true" style={{ fontSize: '14px', fontFamily: 'inherit' }}>→</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -293,13 +456,11 @@ export default function Projects() {
 
   useEffect(() => {
     const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     if (isReducedMotion) {
       setSectionVisible(true);
       setRevealedRows(new Set(data.projects.map((_, i) => i)));
       return;
     }
-
     const obs = new IntersectionObserver(
       entries => {
         if (entries[0].isIntersecting) {
@@ -311,19 +472,16 @@ export default function Projects() {
                 next.add(i);
                 return next;
               });
-            }, i * 110 + 80);
+            }, i * 120 + 60);
           });
           obs.disconnect();
         }
       },
-      { threshold: 0.08 }
+      { threshold: 0.06 }
     );
-
     if (sectionRef.current) obs.observe(sectionRef.current);
     return () => obs.disconnect();
   }, []);
-
-  const total = data.projects.length;
 
   return (
     <section
@@ -335,24 +493,45 @@ export default function Projects() {
       <div
         style={{
           padding: '0 5vw',
-          maxWidth: '1400px',
-          margin: '0 auto',
-          marginBottom: 'clamp(2.5rem, 5vh, 4rem)',
+          marginBottom: 'clamp(2.5rem, 5vh, 4.5rem)',
           opacity: sectionVisible ? 1 : 0,
-          transform: sectionVisible ? 'translateY(0)' : 'translateY(18px)',
-          transition: 'opacity 0.6s ease, transform 0.6s ease',
+          transform: sectionVisible ? 'translateY(0)' : 'translateY(20px)',
+          transition: 'opacity 0.65s ease, transform 0.65s ease',
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1rem',
         }}
       >
-        <div className="eyebrow mb-4">Selected Work</div>
-        <h2
-          className="font-display font-medium text-[#f5f5f2]"
-          style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em' }}
+        <div>
+          <div className="eyebrow mb-4">Selected Work</div>
+          <h2
+            className="font-display font-medium text-[#f5f5f2]"
+            style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', margin: 0 }}
+          >
+            Things I've built.
+          </h2>
+        </div>
+        {/* Project count */}
+        <div
+          style={{
+            fontFamily: 'Menlo, monospace',
+            fontSize: '11px',
+            color: '#3a3a44',
+            letterSpacing: '0.1em',
+            paddingBottom: '0.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}
         >
-          Things I've built.
-        </h2>
+          <span style={{ color: '#252530', fontSize: '18px', letterSpacing: '-0.04em' }}>—</span>
+          {String(TOTAL).padStart(2, '0')} Projects
+        </div>
       </div>
 
-      {/* The index list */}
+      {/* The index */}
       <div>
         {data.projects.map((project, i) => (
           <IndexRow
@@ -365,7 +544,9 @@ export default function Projects() {
             isMobile={isMobile}
             onEnter={() => { if (!isMobile) setHoveredIndex(i); }}
             onLeave={() => { if (!isMobile) setHoveredIndex(null); }}
-            onTap={() => { if (isMobile) setExpandedIndex(prev => prev === i ? null : i); }}
+            onTap={() => {
+              if (isMobile) setExpandedIndex(prev => prev === i ? null : i);
+            }}
           />
         ))}
 
@@ -375,8 +556,8 @@ export default function Projects() {
             margin: '0 5vw',
             height: '1px',
             backgroundColor: '#1f1f24',
-            opacity: revealedRows.size >= total ? 1 : 0,
-            transition: `opacity 0.4s ease ${(total * 0.11) + 0.5}s`,
+            opacity: revealedRows.size >= TOTAL ? 1 : 0,
+            transition: `opacity 0.5s ease ${TOTAL * 0.12 + 0.5}s`,
           }}
           aria-hidden="true"
         />
