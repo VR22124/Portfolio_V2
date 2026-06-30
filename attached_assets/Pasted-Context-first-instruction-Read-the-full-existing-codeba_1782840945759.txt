@@ -1,0 +1,34 @@
+Context-first instruction: Read the full existing codebase first. Study the current projects data, color palette, accent color, typography, and the WebGL background animation. Also look at the project screenshot/image assets currently being used — you'll notice they are dark, minimal, and barely distinguishable. Do not use project images or screenshots in this redesign. They do not serve the visual quality of this portfolio. Instead, build a design that is purely typographic and interaction-driven, which will look significantly more premium and intentional.
+
+Completely rebuild the Projects section with this concept — "The Index".
+
+Core Concept — Editorial Numbered List: Inspired by high-end creative agency portfolios, present all projects as a clean, large-scale numbered list. No cards, no images, no grid. Just pure editorial typography over the live WebGL background. Each project is one full-width row — a thin horizontal rule above it, a large index number on the far left, the project name dominating the center in display-scale type, and the year on the far right. That's it in the resting state. Simple, bold, and immediately impressive.
+
+Hover Interaction — The Reveal: When the user hovers over any project row:
+
+The entire row expands in height smoothly — pushing other rows apart with a fluid accordion motion.
+Inside the expanded area, three columns reveal themselves with a staggered fade-up:
+Left: A one-line role/type tag (e.g. "Full-Stack · 2024") in small monospaced text
+Center: The project description fades in — clean, readable, 2–3 lines max
+Right: Tech stack tags appear as minimal outlined pills, staggered one by one
+The project name itself shifts slightly left and reduces in size on hover to make room — the transition is smooth, like it's breathing.
+A subtle accent-colored underline draws itself under the project name from left to right on hover.
+The row's index number glows in the accent color.
+All other rows dim slightly — opacity drops — so focus is entirely on the hovered project.
+Scroll-In Animation: When the section enters the viewport, the rows don't all appear at once. The horizontal rules draw themselves across the screen first — one by one from top to bottom with staggered delays. Then each row's content fades in with a subtle upward drift, following the rule lines as they appear. It feels like a list being written in real time.
+
+The Project Number Treatment: Numbers should be large — almost decorative — in a very light weight so they feel like ghost/watermark numerals rather than heavy labels. As the user hovers, the hovered number becomes full opacity and accent-colored. Past projects that have been hovered could remain slightly brighter than untouched ones.
+
+A "View Project" Trigger: At the end of the expanded row, a minimal arrow or → link appears — no button style, no background — just a raw typographic call to action that links to the project. It slides in last with a slight delay.
+
+No Images. Here's why: The existing project screenshots are dark, icon-only placeholders that add visual noise without adding meaning. Removing them makes this section cleaner, faster, and more sophisticated. The interaction and typography carry all the weight — this is how premium developer portfolios distinguish themselves from template-style ones.
+
+Mobile: On mobile, remove hover behaviour entirely. Each project row is tappable — tapping expands it like an accordion. The typography scales down but remains bold. Index numbers stay visible on the left.
+
+Strict Rules:
+
+No project images or screenshots of any kind
+No cards, no grid, no opaque backgrounds
+Zero new canvas or WebGL layers
+Reuse all existing project data verbatim from the codebase
+All animation via CSS transitions + IntersectionObserver only

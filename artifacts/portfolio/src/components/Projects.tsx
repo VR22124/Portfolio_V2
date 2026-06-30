@@ -1,196 +1,385 @@
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useEffect, useRef, useState } from 'react';
 import data from '../data.json';
 
-gsap.registerPlugin(ScrollTrigger);
+type Project = (typeof data.projects)[number];
 
-// Rich per-project gradient covers — dark but distinctive, driven by index
-const PROJECT_PALETTES = [
-  // Ledger — deep teal-to-midnight
-  'linear-gradient(135deg, #0d1f2d 0%, #091520 40%, #08080a 100%)',
-  // Fieldnote — slate-green twilight
-  'linear-gradient(135deg, #0e1a14 0%, #0a1510 40%, #08080a 100%)',
-  // Arc — deep purple-charcoal
-  'linear-gradient(135deg, #14101f 0%, #0f0c18 40%, #08080a 100%)',
-  // Pulse — dark amber-to-black
-  'linear-gradient(135deg, #1a1008 0%, #120c06 40%, #08080a 100%)',
-];
+function pad(n: number) {
+  return String(n + 1).padStart(2, '0');
+}
 
-const ACCENT_STOPS = [
-  'rgba(15, 60, 80, 0.35)',    // teal
-  'rgba(20, 55, 35, 0.35)',    // forest
-  'rgba(40, 25, 75, 0.35)',    // indigo
-  'rgba(75, 40, 10, 0.35)',    // amber
-];
+interface RowProps {
+  project: Project;
+  index: number;
+  isExpanded: boolean;
+  isDimmed: boolean;
+  isRevealed: boolean;
+  isMobile: boolean;
+  onEnter: () => void;
+  onLeave: () => void;
+  onTap: () => void;
+}
 
-function FeaturedCard({ project, index }: { project: typeof data.projects[0]; index: number }) {
-  const cardRef = useRef<HTMLAnchorElement>(null);
-
-  useEffect(() => {
-    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!cardRef.current || isReducedMotion) return;
-
-    const ctx = gsap.context(() => {
-      gsap.fromTo(cardRef.current,
-        { opacity: 0, y: 40 },
-        {
-          opacity: 1, y: 0, duration: 0.8, ease: 'power3.out',
-          scrollTrigger: { trigger: cardRef.current, start: 'top 85%', once: true }
-        }
-      );
-    });
-    return () => ctx.revert();
-  }, []);
-
-  const bg = PROJECT_PALETTES[index % PROJECT_PALETTES.length];
-  const accentStop = ACCENT_STOPS[index % ACCENT_STOPS.length];
+function IndexRow({
+  project, index, isExpanded, isDimmed, isRevealed, isMobile,
+  onEnter, onLeave, onTap,
+}: RowProps) {
+  const idx = pad(index);
+  const ruleDelay = `${index * 0.11}s`;
+  const contentDelay = `${index * 0.11 + 0.22}s`;
 
   return (
-    <a
-      ref={cardRef}
-      href={project.link}
-      className="group block relative border border-[#1f1f24] rounded-[2px] overflow-hidden hover:border-[#2e2e36] transition-border duration-500"
-      style={{ opacity: 0 }}
+    <div
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+      onClick={isMobile ? onTap : undefined}
+      style={{
+        padding: '0 5vw',
+        opacity: isDimmed ? 0.3 : 1,
+        transition: 'opacity 0.35s ease',
+        cursor: isMobile ? 'pointer' : 'default',
+      }}
     >
-      {/* Cover image area */}
-      <div className="aspect-video md:aspect-[21/9] w-full overflow-hidden relative bg-[#0d0d10]">
-        {/* Rich gradient base */}
-        <div
-          className="absolute inset-0 group-hover:scale-[1.03] transition-transform duration-700 ease-out"
-          style={{ background: bg }}
-        />
+      {/* Rule — draws left to right */}
+      <div
+        aria-hidden="true"
+        style={{
+          height: '1px',
+          backgroundColor: '#1f1f24',
+          width: isRevealed ? '100%' : '0%',
+          transition: `width 0.75s cubic-bezier(0.16, 1, 0.3, 1) ${ruleDelay}`,
+        }}
+      />
 
-        {/* Accent radial glow — suggests depth */}
-        <div
-          className="absolute inset-0 opacity-60 group-hover:opacity-100 transition-opacity duration-700"
-          style={{ background: `radial-gradient(ellipse at 30% 50%, ${accentStop} 0%, transparent 60%)` }}
-        />
+      {/* Main row */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'clamp(1rem, 2.5vw, 2.5rem)',
+          padding: 'clamp(1.25rem, 2.25vh, 1.875rem) 0',
+          opacity: isRevealed ? 1 : 0,
+          transform: isRevealed ? 'translateY(0)' : 'translateY(16px)',
+          transition: `opacity 0.55s ease ${contentDelay}, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1) ${contentDelay}`,
+        }}
+      >
+        {/* Ghost index number */}
+        <span
+          aria-hidden="true"
+          style={{
+            fontFamily: 'Menlo, monospace',
+            fontSize: 'clamp(18px, 2.2vw, 34px)',
+            fontWeight: 200,
+            letterSpacing: '-0.02em',
+            lineHeight: 1,
+            flexShrink: 0,
+            width: 'clamp(2.25rem, 3.5vw, 5rem)',
+            color: isExpanded ? '#d4ff4f' : '#252530',
+            textShadow: isExpanded ? '0 0 18px rgba(212,255,79,0.55)' : 'none',
+            transition: 'color 0.35s ease, text-shadow 0.35s ease',
+            userSelect: 'none',
+          }}
+        >
+          {idx}
+        </span>
 
-        {/* Project initial — large, barely visible, adds depth */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-          <span
-            className="font-display font-bold text-[#f5f5f2] select-none"
+        {/* Project name */}
+        <div style={{ flex: 1, position: 'relative', minWidth: 0, overflow: 'visible' }}>
+          <h3
+            className="font-display"
             style={{
-              fontSize: 'clamp(100px, 18vw, 240px)',
-              opacity: 0.04,
-              letterSpacing: '-0.05em',
+              fontWeight: 700,
+              fontSize: isExpanded
+                ? 'clamp(20px, 2.6vw, 40px)'
+                : 'clamp(26px, 4.5vw, 72px)',
+              letterSpacing: isExpanded ? '-0.025em' : '-0.04em',
+              color: '#f5f5f2',
               lineHeight: 1,
+              margin: 0,
+              transition:
+                'font-size 0.45s cubic-bezier(0.16, 1, 0.3, 1), letter-spacing 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}
           >
-            {project.title[0]}
-          </span>
+            {project.title}
+          </h3>
+          {/* Accent underline draws on hover */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              bottom: '-2px',
+              left: 0,
+              height: '1px',
+              backgroundColor: '#d4ff4f',
+              width: isExpanded ? '100%' : '0%',
+              transition: isExpanded
+                ? 'width 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.08s'
+                : 'width 0.3s ease',
+            }}
+          />
         </div>
 
-        {/* Bottom gradient for text legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#08080a] via-[#08080a]/50 to-transparent" />
+        {/* Year — hides on expand */}
+        <span
+          style={{
+            fontFamily: 'Menlo, monospace',
+            fontSize: '10px',
+            color: '#3a3a44',
+            letterSpacing: '0.12em',
+            flexShrink: 0,
+            opacity: isExpanded ? 0 : 1,
+            transition: 'opacity 0.2s ease',
+            userSelect: 'none',
+          }}
+        >
+          {project.year}
+        </span>
+      </div>
 
-        {/* Content overlaid at bottom */}
-        <div className="absolute bottom-0 left-0 p-8 md:p-10 w-full flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="max-w-xl">
-            <div className="flex items-center gap-4 mb-2">
-              <h3 className="text-3xl md:text-5xl font-display font-medium text-[#f5f5f2] leading-none">
-                {project.title}
-              </h3>
-              <svg
-                className="w-5 h-5 text-[#d4ff4f] opacity-0 -translate-x-3 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-400"
-                viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      {/* Expanded accordion body */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateRows: isExpanded ? '1fr' : '0fr',
+          transition: 'grid-template-rows 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+      >
+        <div style={{ overflow: 'hidden', minHeight: 0 }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile
+                ? '1fr'
+                : '1.1fr 2fr 1fr',
+              gap: isMobile ? '1.25rem' : 'clamp(1rem, 3vw, 3rem)',
+              paddingBottom: 'clamp(1.5rem, 3vh, 2.5rem)',
+              /* indent to align under project name (past the index number) */
+              paddingLeft: `calc(clamp(2.25rem, 3.5vw, 5rem) + clamp(1rem, 2.5vw, 2.5rem))`,
+              alignItems: 'start',
+            }}
+          >
+            {/* Left — subtitle / type label */}
+            <div
+              style={{
+                opacity: isExpanded ? 1 : 0,
+                transform: isExpanded ? 'translateY(0)' : 'translateY(10px)',
+                transition: isExpanded
+                  ? 'opacity 0.4s ease 0.18s, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.18s'
+                  : 'none',
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: 'Menlo, monospace',
+                  fontSize: '11px',
+                  color: '#6a6a74',
+                  letterSpacing: '0.06em',
+                  lineHeight: 1.6,
+                  margin: 0,
+                }}
               >
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
+                {project.subtitle}
+              </p>
             </div>
-            <p className="text-base text-[#8c8c94] mb-1.5">{project.subtitle}</p>
-            <p className="text-sm text-[#4a4a52] leading-relaxed max-w-lg">{project.description}</p>
-          </div>
 
-          <div className="flex flex-col items-start md:items-end gap-3 shrink-0">
-            <span className="font-mono text-sm text-[#4a4a52]">{project.year}</span>
-            <div className="flex flex-wrap gap-2">
-              {project.tags.map(tag => (
-                <span key={tag} className="px-2 py-1 text-xs border border-[#2e2e36]/60 text-[#8c8c94] rounded-[2px]">
-                  {tag}
-                </span>
-              ))}
+            {/* Center — description */}
+            <div
+              style={{
+                opacity: isExpanded ? 1 : 0,
+                transform: isExpanded ? 'translateY(0)' : 'translateY(10px)',
+                transition: isExpanded
+                  ? 'opacity 0.4s ease 0.25s, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.25s'
+                  : 'none',
+              }}
+            >
+              <p
+                style={{
+                  fontSize: '14px',
+                  color: '#8c8c94',
+                  lineHeight: 1.8,
+                  margin: 0,
+                }}
+              >
+                {project.description}
+              </p>
+            </div>
+
+            {/* Right — tags + View link */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                alignItems: isMobile ? 'flex-start' : 'flex-end',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '0.375rem',
+                  justifyContent: isMobile ? 'flex-start' : 'flex-end',
+                }}
+              >
+                {project.tags.map((tag, j) => (
+                  <span
+                    key={tag}
+                    style={{
+                      fontSize: '10px',
+                      color: '#8c8c94',
+                      border: '1px solid #2a2a34',
+                      padding: '3px 9px',
+                      borderRadius: '2px',
+                      letterSpacing: '0.04em',
+                      opacity: isExpanded ? 1 : 0,
+                      transform: isExpanded ? 'translateY(0)' : 'translateY(6px)',
+                      transition: isExpanded
+                        ? `opacity 0.35s ease ${0.32 + j * 0.06}s, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${0.32 + j * 0.06}s`
+                        : 'none',
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              {/* View Project → */}
+              <a
+                href={project.link}
+                onClick={e => { if (project.link === '#') e.preventDefault(); }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  color: '#d4ff4f',
+                  textDecoration: 'none',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  opacity: isExpanded ? 1 : 0,
+                  transform: isExpanded ? 'translateX(0)' : 'translateX(10px)',
+                  transition: isExpanded
+                    ? 'opacity 0.35s ease 0.5s, transform 0.35s ease 0.5s'
+                    : 'none',
+                }}
+              >
+                View Project <span aria-hidden="true">→</span>
+              </a>
             </div>
           </div>
         </div>
       </div>
-    </a>
+    </div>
   );
 }
 
 export default function Projects() {
   const sectionRef = useRef<HTMLElement>(null);
-  const moreRef = useRef<HTMLDivElement>(null);
-
-  const featured = data.projects.filter(p => p.featured);
-  const other = data.projects.filter(p => !p.featured);
+  const [sectionVisible, setSectionVisible] = useState(false);
+  const [revealedRows, setRevealedRows] = useState<Set<number>>(new Set());
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(sectionRef.current!.querySelector('.section-eyebrow'),
-        { opacity: 0, y: 16 },
-        {
-          opacity: 1, y: 0, duration: 0.6, ease: 'power2.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%', once: true }
-        }
-      );
-
-      if (moreRef.current) {
-        gsap.fromTo(moreRef.current.querySelectorAll('.more-card'),
-          { opacity: 0, y: 24 },
-          {
-            opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', stagger: 0.1,
-            scrollTrigger: { trigger: moreRef.current, start: 'top 85%', once: true }
-          }
-        );
-      }
-    }, sectionRef);
-    return () => ctx.revert();
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check, { passive: true });
+    return () => window.removeEventListener('resize', check);
   }, []);
+
+  useEffect(() => {
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (isReducedMotion) {
+      setSectionVisible(true);
+      setRevealedRows(new Set(data.projects.map((_, i) => i)));
+      return;
+    }
+
+    const obs = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting) {
+          setSectionVisible(true);
+          data.projects.forEach((_, i) => {
+            setTimeout(() => {
+              setRevealedRows(prev => {
+                const next = new Set(prev);
+                next.add(i);
+                return next;
+              });
+            }, i * 110 + 80);
+          });
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.08 }
+    );
+
+    if (sectionRef.current) obs.observe(sectionRef.current);
+    return () => obs.disconnect();
+  }, []);
+
+  const total = data.projects.length;
 
   return (
     <section
-      id="work"
+      id="projects"
       ref={sectionRef}
-      className="container-layout section-padding"
-      style={{ minHeight: '180vh' }}
+      style={{ padding: 'clamp(4rem, 8vh, 7rem) 0', position: 'relative' }}
     >
-      <div className="eyebrow section-eyebrow mb-12" style={{ opacity: 0 }}>Selected Work</div>
-
-      {/* Featured — each takes generous height, allowed to span 2 viewport heights total */}
-      <div className="flex flex-col gap-10 mb-20">
-        {featured.map((project, i) => (
-          <FeaturedCard key={project.id} project={project} index={i} />
-        ))}
+      {/* Section header */}
+      <div
+        style={{
+          padding: '0 5vw',
+          maxWidth: '1400px',
+          margin: '0 auto',
+          marginBottom: 'clamp(2.5rem, 5vh, 4rem)',
+          opacity: sectionVisible ? 1 : 0,
+          transform: sectionVisible ? 'translateY(0)' : 'translateY(18px)',
+          transition: 'opacity 0.6s ease, transform 0.6s ease',
+        }}
+      >
+        <div className="eyebrow mb-4">Selected Work</div>
+        <h2
+          className="font-display font-medium text-[#f5f5f2]"
+          style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em' }}
+        >
+          Things I've built.
+        </h2>
       </div>
 
-      {/* More Work — compact 3-col grid */}
-      <div ref={moreRef}>
-        <div className="eyebrow mb-8" style={{ opacity: 0 }}>More Work</div>
-        <div className="grid md:grid-cols-3 gap-4">
-          {other.map((project, i) => (
-            <a
-              key={project.id}
-              href={project.link}
-              className="more-card group p-6 border border-[#1f1f24] bg-[#111114]/40 hover:bg-[#111114] hover:border-[#2e2e36] rounded-[2px] transition-all duration-300 flex flex-col"
-              style={{ opacity: 0 }}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <h4 className="text-lg font-display text-[#f5f5f2] group-hover:text-[#d4ff4f] transition-colors duration-200">
-                  {project.title}
-                </h4>
-                <span className="font-mono text-xs text-[#4a4a52] shrink-0 ml-3 mt-0.5">{project.year}</span>
-              </div>
-              <p className="text-sm text-[#8c8c94] mb-5 flex-1 leading-relaxed">{project.description}</p>
-              <div className="flex flex-wrap gap-2 mt-auto">
-                {project.tags.map(tag => (
-                  <span key={tag} className="text-xs text-[#4a4a52] border border-[#1f1f24] px-2 py-0.5 rounded-[2px]">{tag}</span>
-                ))}
-              </div>
-            </a>
-          ))}
-        </div>
+      {/* The index list */}
+      <div>
+        {data.projects.map((project, i) => (
+          <IndexRow
+            key={project.id}
+            project={project}
+            index={i}
+            isExpanded={isMobile ? expandedIndex === i : hoveredIndex === i}
+            isDimmed={!isMobile && hoveredIndex !== null && hoveredIndex !== i}
+            isRevealed={revealedRows.has(i)}
+            isMobile={isMobile}
+            onEnter={() => { if (!isMobile) setHoveredIndex(i); }}
+            onLeave={() => { if (!isMobile) setHoveredIndex(null); }}
+            onTap={() => { if (isMobile) setExpandedIndex(prev => prev === i ? null : i); }}
+          />
+        ))}
+
+        {/* Closing rule */}
+        <div
+          style={{
+            margin: '0 5vw',
+            height: '1px',
+            backgroundColor: '#1f1f24',
+            opacity: revealedRows.size >= total ? 1 : 0,
+            transition: `opacity 0.4s ease ${(total * 0.11) + 0.5}s`,
+          }}
+          aria-hidden="true"
+        />
       </div>
     </section>
   );
