@@ -63,6 +63,14 @@ function App() {
   const [webglSupported] = useState<boolean>(() => isWebGLAvailable());
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
+  // Always start at the top — disable browser scroll restoration
+  useEffect(() => {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 

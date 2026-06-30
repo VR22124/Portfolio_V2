@@ -18,9 +18,8 @@ export default function Loader({ onComplete }: { onComplete: () => void }) {
   const [overlayOpacity, setOverlayOpacity] = useState(1);
 
   useEffect(() => {
-    const hasLoaded = sessionStorage.getItem('portfolio-loaded');
     const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (hasLoaded || isReducedMotion) { onComplete(); return; }
+    if (isReducedMotion) { onComplete(); return; }
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -269,7 +268,6 @@ export default function Loader({ onComplete }: { onComplete: () => void }) {
 
       // ── Done ──────────────────────────────────────────────────────────────────
       ctx.restore();
-      sessionStorage.setItem('portfolio-loaded', 'true');
       onComplete();
     };
 
