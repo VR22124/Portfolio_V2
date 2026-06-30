@@ -1,0 +1,164 @@
+# DARK PARTICLE PORTFOLIO — Refinement Pass
+## Improvement prompt for the existing build (do not start over — refine in place)
+
+> **Instructions for the agent:** The base build is working and the particle/scroll system is
+> good — keep that core mechanic intact. This pass is about layout discipline, legibility,
+> section-level polish, and adding richer (but still restrained) motion. Go through each item
+> below in order. After each change, sanity-check it against the "quiet confidence, not noise"
+> vibe statement from the original spec — nothing here should make the site feel busier, only
+> more resolved.
+
+For animation/interaction reference quality, look at **Skiper UI** (skiper-ui.com) and similar
+component libraries (Aceternity UI, Magic UI, Cult UI) for the *kind* of polish expected on
+text reveals, hover states, and scroll-triggered transitions — not to copy specific components,
+but to match that level of craft and timing.
+
+---
+
+## 1. Hero Section — Layout & Composition
+
+- The particle formation currently sits dead-center and competes with the headline. Offset the
+  particle focal point so it sits more toward the **right side** of the viewport (roughly 60–65%
+  horizontal), with the headline/text block left-aligned and given clear breathing room on the
+  left two-thirds of the screen.
+- The text block should read as the primary subject and the particles as the supporting visual,
+  not the other way around. Increase the contrast between them — consider a subtle dark
+  gradient/scrim behind the text block specifically (not the whole viewport) so the headline
+  stays legible regardless of where particles drift.
+- Hero must fit cleanly within a single viewport height (`100vh`) on standard desktop and laptop
+  screens — no content should require scrolling to see the primary headline, subtext, and CTAs.
+
+## 2. Section Rhythm — One Viewport Per Section (Projects = Exception)
+
+- Every section (Stats, Journey, Experience, Skills, How I Work, Principles, Testimonials,
+  Contact) should be composed to comfortably occupy **one full viewport height** at a time on
+  desktop — meaning content, spacing, and type size should be tuned so a user lands on a
+  section and sees a complete, well-composed "frame" without it feeling cramped or having huge
+  dead space either.
+- **Projects is the deliberate exception** — since it needs to show featured work properly
+  (cover image, title, subtitle, tags) it should be allowed to span roughly **two viewport
+  heights** so featured projects get room to breathe and aren't squeezed.
+- This is about visual rhythm, not a hard pixel rule — use `min-height` with sensible vertical
+  centering rather than forcing exact `100vh` and breaking on content overflow.
+
+## 3. Text Legibility Over the Particle Background
+
+- Across all sections, audit every block of text sitting over the particle canvas. Where
+  contrast is currently weak (text getting visually lost in the particle motion), add a
+  **localized backdrop treatment**: either a soft radial/linear scrim behind text blocks, a
+  slight `backdrop-filter: blur()` panel behind dense text (e.g. project descriptions, card
+  bodies), or both — applied subtly enough that it doesn't look like a "card with a background,"
+  just enough to lift legibility.
+- Particle opacity/size should also be reduced slightly in sections with heavy text density
+  (Experience, Principles) versus sections that are more visual (Hero, Contact).
+
+## 4. Journey Section — Convert to Proper Scroll Animation
+
+- Currently static-feeling. Rebuild as a scroll-scrubbed sequence: as the user scrolls through
+  this section, each timeline entry should reveal in sequence — the year, title, and
+  description animating in (staggered fade + slight upward motion) as that entry's position
+  crosses a scroll threshold, not all at once.
+- The connecting vertical line should continue to draw progressively (`stroke-dashoffset`
+  scrubbed to scroll progress through the section) but now tightly synced so the line's leading
+  edge always matches the most recently revealed entry.
+- Consider pinning the section briefly (GSAP `ScrollTrigger` with `pin: true`) so entries can
+  step through with a bit more intentional pacing, then release the pin once the last entry has
+  revealed.
+
+## 5. Text Animation System — Add Reveal Variety
+
+Introduce a small, reusable set of text animation components and apply them purposefully
+(not on every single line — reserve for headlines, key stats, and section intros):
+
+- **Line/word reveal**: text masked behind an overflow-hidden container, sliding up into view
+  on scroll-into-view (classic "rolling text" reveal) — use for section headlines.
+- **Character stagger fade**: individual characters fading/translating in with a slight stagger
+  — reserve for short high-impact phrases only (e.g. hero headline, contact headline), since
+  overusing this gets distracting fast.
+- **Highlight/underline draw-in**: for emphasized words or phrases, animate an underline or
+  highlight bar drawing left-to-right in sync with scroll, instead of static styling.
+
+Keep all of these performant (CSS transforms + GSAP, no layout-triggering properties) and gate
+them behind `prefers-reduced-motion` exactly like the rest of the motion system.
+
+## 6. Skills Section — Full Redesign
+
+The current grid feels flat. Rebuild with more intentional motion and structure:
+
+- On scroll-into-view, skill cards should stagger in rather than appear all at once (small
+  delay per card, fast enough that it still feels snappy, not slow).
+- Strengthen the hover interaction beyond the current grayscale-to-color swap: add a subtle
+  scale/lift, and animate the progress bar (the `level` value) filling in from 0 on hover or on
+  first scroll-into-view rather than rendering pre-filled and static.
+- Consider grouping by `category` (Frontend, Backend, Language, etc.) with a small category
+  label/divider rather than one flat undifferentiated grid, so the section reads as organized
+  expertise rather than a logo wall.
+- Keep the real `react-icons/si` brand logo system exactly as-is — that part is correct and
+  should not change.
+
+## 7. Projects Section — Fix Images & Improve Presentation
+
+- Project cover images are not rendering/visible — debug and fix this first (check the `image`
+  paths resolve correctly from `/public/projects/`, confirm placeholder generation logic is
+  actually producing visible output, and confirm no z-index/overlay issue is hiding the image
+  beneath the dark gradient scrim).
+- Once images render correctly, make sure the dark gradient overlay is tuned so the image is
+  clearly visible at rest and the title/subtitle text remains legible — current overlay
+  treatment should not fully obscure the artwork.
+- Reaffirm the hover scale interaction is smooth and contained (`overflow: hidden` on the
+  parent, no layout shift), and that featured vs. non-featured project cards have a clear visual
+  hierarchy (featured = larger, more prominent; "More Work" = compact grid below).
+
+## 8. Experience Section — Visual Polish Pass
+
+- Improve the visual weight and craft of the experience cards — current version reads as plain
+  text blocks. Add clearer hierarchy: company name should be the dominant element, role/period
+  secondary, description tertiary, highlight bullets visually distinct (lime checkmarks, slight
+  indent).
+- Add a scroll-reveal entrance per card (staggered, consistent with the rest of the site's
+  reveal timing) rather than all cards being visible/static on section load.
+- Strengthen the hover/border treatment so cards feel more substantial — consider a subtle
+  background tint shift or border-glow on hover rather than just a border color change.
+
+## 9. Particle Motion — Tone Down Without Changing the System
+
+- The morph mechanic and formations themselves are good and should **not** be redesigned. The
+  issue is intensity/distraction in context, not the concept. Apply these adjustments:
+  - Reduce particle opacity slightly in text-heavy sections (per Section 3 above).
+  - Slow the idle jitter amplitude down slightly — it should read as "breathing," barely
+    perceptible at rest, not as constant visible motion competing with reading.
+  - Confirm the `scrub: 1` smoothing lag is actually softening movement enough — if particles
+    still feel jumpy/fast during normal scroll speed, increase the scrub value slightly (try
+    `1.2–1.5`) to slow the perceived reaction speed without breaking the sync feel.
+- Goal: someone reading body text in any section should not feel their eye pulled toward the
+  background. The particle field should feel ambient, not foregrounded, except during the Hero
+  and Contact moments where it's meant to be the visual lead.
+
+## 10. Responsiveness — Full Audit
+
+- Test and fix every section at common breakpoints: mobile (`375px`–`428px`), tablet
+  (`768px`–`1024px`), laptop (`1280px`–`1440px`), and large desktop (`1920px`+).
+- Pay particular attention to: hero text scaling and the new right-offset particle composition
+  (on mobile, particles should likely recenter or fall back to a simpler position since there's
+  no room for the offset layout), Journey timeline collapsing cleanly to single-column, Skills
+  grid reflow, and Projects images maintaining aspect ratio without cropping awkwardly.
+- Confirm touch-scroll behavior on the particle morph and section reveals feels smooth on actual
+  mobile scroll physics (per the original spec's `scrub: true` mobile override) — re-verify this
+  is actually wired correctly given the other scroll changes in this pass.
+
+---
+
+## Priority Order (if time-constrained, do these first)
+
+1. Fix project images not rendering (Section 7) — this is a functional bug, not polish
+2. Hero composition offset + legibility scrim (Sections 1 & 3)
+3. Tone down particle distraction (Section 9)
+4. Journey scroll animation (Section 4)
+5. Skills section redesign (Section 6)
+6. Text reveal system (Section 5)
+7. Experience polish + section viewport rhythm + full responsiveness pass (Sections 8, 2, 10)
+
+---
+
+*End of refinement spec. Apply changes incrementally and verify each section still respects the
+"quiet confidence, not noise" vibe statement before moving to the next.*

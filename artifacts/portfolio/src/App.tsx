@@ -42,10 +42,10 @@ function CSSParticleFallback() {
       left: `${(Math.random() * 100).toFixed(1)}%`,
       top: `${(Math.random() * 100).toFixed(1)}%`,
       animationDelay: `${(Math.random() * 6).toFixed(2)}s`,
-      animationDuration: `${(4 + Math.random() * 8).toFixed(2)}s`,
+      animationDuration: `${(5 + Math.random() * 9).toFixed(2)}s`,
       width: `${(1 + Math.random() * 2).toFixed(1)}px`,
       height: `${(1 + Math.random() * 2).toFixed(1)}px`,
-      opacity: parseFloat((0.2 + Math.random() * 0.5).toFixed(2)),
+      opacity: parseFloat((0.15 + Math.random() * 0.4).toFixed(2)),
     }));
   }
   return (
@@ -61,6 +61,7 @@ function App() {
   const scrollProgress = useRef(0);
   const [loading, setLoading] = useState(true);
   const [webglSupported] = useState<boolean>(() => isWebGLAvailable());
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   useEffect(() => {
     const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -69,7 +70,7 @@ function App() {
       trigger: document.body,
       start: 'top top',
       end: 'bottom bottom',
-      scrub: window.innerWidth < 768 ? true : 1,
+      scrub: isMobile ? true : 1.3,
       onUpdate: (self) => {
         scrollProgress.current = isReducedMotion ? 0 : self.progress;
       }
@@ -84,9 +85,14 @@ function App() {
     <>
       {loading && <Loader onComplete={() => setLoading(false)} />}
 
-      <div className="fixed inset-0 z-0 pointer-events-none vignette-overlay">
+      {/* Particle canvas — shifted right so formation sits at ~60-65% horizontal */}
+      <div
+        className="fixed inset-0 z-0 pointer-events-none vignette-overlay"
+        style={!isMobile ? { left: '18%', width: '100%' } : undefined}
+        aria-hidden="true"
+      >
         {webglSupported ? (
-          <Canvas camera={{ position: [0, 0, 8], fov: 60 }}>
+          <Canvas camera={{ position: [0, 0, 8], fov: 55 }}>
             <ParticleField scrollProgress={scrollProgress} />
           </Canvas>
         ) : (

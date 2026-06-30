@@ -18,7 +18,7 @@
   --border-bright:  #2e2e36;
   --particle-color: #d4ff4f;
 
-  --text-hero: clamp(48px, 8vw, 120px);
+  --text-hero: clamp(44px, 7.5vw, 112px);
   --text-h1: clamp(36px, 5vw, 64px);
   --text-h2: clamp(24px, 3vw, 36px);
   --text-body: 17px;
@@ -42,7 +42,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   font-family: var(--font-display);
 }
 
-.text-hero { font-size: var(--text-hero); line-height: 0.95; letter-spacing: -0.03em; }
+.text-hero { font-size: var(--text-hero); line-height: 0.93; letter-spacing: -0.03em; }
 .text-h1 { font-size: var(--text-h1); line-height: 1.1; letter-spacing: -0.02em; }
 .text-h2 { font-size: var(--text-h2); line-height: 1.2; letter-spacing: -0.01em; }
 .text-body { font-size: var(--text-body); line-height: 1.6; }
@@ -54,8 +54,8 @@ h1, h2, h3, h4, h5, h6, .font-display {
   color: var(--text-tertiary);
   font-size: var(--text-small);
   font-weight: 500;
+  font-family: var(--font-body);
 }
-
 .eyebrow::before {
   content: '●';
   color: var(--accent);
@@ -67,14 +67,15 @@ h1, h2, h3, h4, h5, h6, .font-display {
   color: var(--bg-base);
 }
 
+/* ─── Vignette ─── */
 .vignette-overlay {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
-  background: radial-gradient(circle at center, transparent 30%, var(--bg-base) 100%);
+  background: radial-gradient(ellipse at 65% 50%, transparent 35%, rgba(8,8,10,0.92) 85%);
 }
 
+/* ─── Layout ─── */
 .container-layout {
   max-width: 1400px;
   margin: 0 auto;
@@ -94,8 +95,21 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 @media (min-width: 768px) {
   .section-padding {
-    padding-top: 160px;
-    padding-bottom: 160px;
+    padding-top: 140px;
+    padding-bottom: 140px;
+  }
+}
+
+/* Section viewport rhythm — one clean frame per section */
+.section-frame {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+@media (max-width: 767px) {
+  .section-frame {
+    min-height: auto;
   }
 }
 
@@ -111,4 +125,92 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 .border-technical:hover {
   border-color: var(--border-bright);
+}
+
+/* ─── Text Reveal System ─── */
+.text-reveal-wrap {
+  overflow: hidden;
+  display: block;
+}
+.text-reveal-line {
+  display: block;
+  will-change: transform;
+}
+
+/* ─── Hero scrim — localized behind text, not full viewport ─── */
+.hero-text-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(8, 8, 10, 0.72) 0%,
+    rgba(8, 8, 10, 0.55) 42%,
+    rgba(8, 8, 10, 0.18) 65%,
+    transparent 80%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+@media (max-width: 767px) {
+  .hero-text-scrim {
+    background: rgba(8, 8, 10, 0.65);
+  }
+}
+
+/* ─── CSS Particle Fallback ─── */
+.css-particle-fallback {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.css-particle {
+  position: absolute;
+  background: #d4ff4f;
+  border-radius: 50%;
+  animation: particle-pulse linear infinite;
+}
+@keyframes particle-pulse {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-18px) scale(1.08); }
+}
+
+/* ─── Skill progress bar ─── */
+.skill-bar {
+  width: 100%;
+  height: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+.skill-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--text-tertiary);
+  transition: background 0.3s;
+}
+
+/* ─── Focus ring ─── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .text-reveal-line {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+  }
 }
