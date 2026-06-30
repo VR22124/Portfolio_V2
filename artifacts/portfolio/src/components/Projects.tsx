@@ -251,13 +251,25 @@ function IndexRow({
             transition: 'grid-template-rows 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          <div style={{ overflow: 'hidden', minHeight: 0 }}>
-            {/* Thin separator inside expanded area */}
+          <div
+            style={{
+              overflow: 'hidden',
+              minHeight: 0,
+              background: 'rgba(8, 8, 10, 0.78)',
+              backdropFilter: 'blur(18px)',
+              WebkitBackdropFilter: 'blur(18px)',
+              borderTop: '1px solid rgba(212,255,79,0.08)',
+              borderBottom: '1px solid rgba(255,255,255,0.03)',
+              margin: '0 -5vw',
+              padding: '0 5vw',
+            }}
+          >
+            {/* Thin accent separator */}
             <div
               aria-hidden="true"
               style={{
                 height: '1px',
-                background: 'linear-gradient(to right, rgba(212,255,79,0.15), transparent 60%)',
+                background: 'linear-gradient(to right, rgba(212,255,79,0.2), transparent 55%)',
                 marginBottom: '1.75rem',
                 opacity: isExpanded ? 1 : 0,
                 transition: 'opacity 0.3s ease 0.1s',
@@ -301,7 +313,7 @@ function IndexRow({
                   style={{
                     fontFamily: 'Menlo, monospace',
                     fontSize: '12px',
-                    color: '#6a6a74',
+                    color: '#9a9aaa',
                     letterSpacing: '0.04em',
                     lineHeight: 1.65,
                     margin: 0,
@@ -337,7 +349,7 @@ function IndexRow({
                 <p
                   style={{
                     fontSize: '14px',
-                    color: '#8c8c94',
+                    color: '#c0c0cc',
                     lineHeight: 1.85,
                     margin: 0,
                     maxWidth: '520px',
@@ -384,12 +396,12 @@ function IndexRow({
                         key={tag}
                         style={{
                           fontSize: '10px',
-                          color: '#8c8c94',
-                          border: '1px solid #282832',
+                          color: '#a8a8b8',
+                          border: '1px solid #38383f',
                           padding: '3px 9px',
                           borderRadius: '2px',
                           letterSpacing: '0.04em',
-                          background: 'rgba(255,255,255,0.02)',
+                          background: 'rgba(255,255,255,0.04)',
                           opacity: isExpanded ? 1 : 0,
                           transform: isExpanded ? 'translateY(0)' : 'translateY(8px)',
                           transition: isExpanded
