@@ -1,44 +1,223 @@
 import { useEffect, useRef, useState } from 'react';
 import data from '../data.json';
 
-/** Single digit column — rolls from 0 to `value` on trigger */
-function DigitColumn({ value, triggered, delay = 0 }: {
-  value: number;
-  triggered: boolean;
-  delay?: number;
-}) {
-  return (
-    <span
-      style={{
-        display: 'inline-block',
-        overflow: 'hidden',
-        height: '1em',
-        verticalAlign: 'top',
-        lineHeight: 1,
-      }}
-    >
-      <span
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          transform: triggered ? `translateY(-${value * 10}%)` : 'translateY(0)',
-          transition: triggered
-            ? `transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay}s`
-            : 'none',
-        }}
-      >
-        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
-          <span key={d} style={{ display: 'block', flexShrink: 0, height: '1em', lineHeight: 1 }}>
-            {d}
-          </span>
-        ))}
-      </span>
-    </span>
-  );
+// Contextual phase labels — derived, not in data
+const PHASES = ['Discover', 'Architect', 'Execute', 'Handover'];
+const TOTAL = data.howIWork.length;
+
+interface StepProps {
+  step: (typeof data.howIWork)[number];
+  phase: string;
+  index: number;
+  isRevealed: boolean;
+  isActive: boolean;
+  isPast: boolean;
+  isMobile: boolean;
 }
 
-const TOTAL = data.howIWork.length;
-const HEADER_WORDS = 'How I work.'.split(' ');
+function Step({ step, phase, index, isRevealed, isActive, isPast, isMobile }: StepProps) {
+  const num = step.step; // "01" "02" etc.
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        padding: `clamp(3rem, 6vh, 5rem) 5vw`,
+        overflow: 'hidden',
+        /* Accent left strip */
+      }}
+    >
+      {/* ── Left accent strip ─────────────────────────────── */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: '2px',
+          background: 'linear-gradient(to bottom, #d4ff4f, rgba(212,255,79,0.2))',
+          boxShadow: isActive ? '0 0 16px rgba(212,255,79,0.45)' : 'none',
+          transform: isActive ? 'scaleY(1)' : 'scaleY(0)',
+          transformOrigin: 'top',
+          transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease',
+        }}
+      />
+
+      {/* ── Top horizontal rule ───────────────────────────── */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '1px',
+          background: isActive
+            ? 'linear-gradient(to right, #d4ff4f 0%, rgba(212,255,79,0.18) 25%, #1a1a22 60%)'
+            : '#1a1a22',
+          transform: `scaleX(${isRevealed ? 1 : 0})`,
+          transformOrigin: 'left',
+          transition: isRevealed
+            ? 'transform 0.95s cubic-bezier(0.16, 1, 0.3, 1), background 0.6s ease'
+            : 'background 0.6s ease',
+        }}
+      />
+
+      {/* ── Massive watermark numeral ─────────────────────── */}
+      <div
+        aria-hidden="true"
+        className="font-display"
+        style={{
+          position: 'absolute',
+          right: isMobile ? '-5%' : '2%',
+          top: '50%',
+          transform: `translateY(-50%) scale(${isRevealed ? 1 : 0.85})`,
+          fontWeight: 900,
+          fontSize: isMobile ? 'clamp(120px, 40vw, 220px)' : 'clamp(140px, 20vw, 320px)',
+          lineHeight: 1,
+          letterSpacing: '-0.07em',
+          color: '#f5f5f2',
+          opacity: isActive ? 0.055 : (isRevealed ? 0.025 : 0),
+          transition: 'opacity 0.7s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+          userSelect: 'none',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      >
+        {num}
+      </div>
+
+      {/* ── Content layout ────────────────────────────────── */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : '220px 1fr',
+          gap: isMobile ? '1.5rem' : 'clamp(3rem, 5vw, 7rem)',
+          alignItems: 'center',
+          minHeight: isMobile ? undefined : 'clamp(10rem, 18vh, 16rem)',
+        }}
+      >
+        {/* ── Left column: phase + counter ──────────────────── */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'row' : 'column',
+            alignItems: isMobile ? 'center' : 'flex-start',
+            gap: isMobile ? '1rem' : '0.75rem',
+          }}
+        >
+          {/* Phase badge */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              fontFamily: 'Menlo, monospace',
+              fontSize: '9px',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: isActive ? '#d4ff4f' : (isPast ? '#4a4a52' : '#2a2a34'),
+              border: `1px solid ${isActive ? 'rgba(212,255,79,0.3)' : 'rgba(255,255,255,0.05)'}`,
+              padding: '4px 8px',
+              borderRadius: '2px',
+              opacity: isRevealed ? 1 : 0,
+              transform: isRevealed ? 'translateX(0)' : 'translateX(-10px)',
+              transition: isRevealed
+                ? 'opacity 0.45s ease 0.12s, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.12s, color 0.45s ease, border-color 0.45s ease'
+                : 'color 0.45s ease, border-color 0.45s ease',
+            }}
+          >
+            {/* Status dot */}
+            <span
+              style={{
+                width: '5px',
+                height: '5px',
+                borderRadius: '50%',
+                background: isActive ? '#d4ff4f' : (isPast ? '#3a3a44' : 'transparent'),
+                border: isPast || isActive ? 'none' : '1px solid #3a3a44',
+                flexShrink: 0,
+                transition: 'background 0.4s ease',
+              }}
+            />
+            {phase}
+          </div>
+
+          {/* Step counter */}
+          <div
+            style={{
+              fontFamily: 'Menlo, monospace',
+              fontSize: '11px',
+              color: isPast ? '#3a3a44' : (isActive ? '#d4ff4f' : '#252530'),
+              letterSpacing: '0.08em',
+              opacity: isRevealed ? 1 : 0,
+              transition: isRevealed
+                ? 'opacity 0.4s ease 0.2s, color 0.4s ease'
+                : 'color 0.4s ease',
+            }}
+          >
+            {num} / {String(TOTAL).padStart(2, '0')}
+          </div>
+        </div>
+
+        {/* ── Right column: title + description ─────────────── */}
+        <div>
+          {/* Title */}
+          <h3
+            className="font-display"
+            style={{
+              fontWeight: 700,
+              fontSize: 'clamp(26px, 3.2vw, 56px)',
+              letterSpacing: '-0.03em',
+              color: '#f5f5f2',
+              lineHeight: 1.1,
+              margin: '0 0 clamp(0.875rem, 1.5vh, 1.25rem) 0',
+              opacity: isRevealed ? 1 : 0,
+              transform: isRevealed ? 'translateY(0)' : 'translateY(20px)',
+              transition: isRevealed
+                ? 'opacity 0.6s ease 0.28s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.28s'
+                : 'none',
+            }}
+          >
+            {step.title}
+          </h3>
+
+          {/* Accent underline — draws under title */}
+          <div
+            aria-hidden="true"
+            style={{
+              height: '1px',
+              background: 'linear-gradient(to right, rgba(212,255,79,0.25), transparent 60%)',
+              width: isActive ? '60%' : '0%',
+              marginBottom: 'clamp(0.875rem, 1.5vh, 1.25rem)',
+              transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s',
+            }}
+          />
+
+          {/* Description */}
+          <p
+            style={{
+              fontSize: 'clamp(14px, 1.1vw, 16px)',
+              color: '#8c8c94',
+              lineHeight: 1.8,
+              margin: 0,
+              maxWidth: '520px',
+              opacity: isRevealed ? 1 : 0,
+              transform: isRevealed ? 'translateY(0)' : 'translateY(12px)',
+              transition: isRevealed
+                ? 'opacity 0.5s ease 0.45s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.45s'
+                : 'none',
+            }}
+          >
+            {step.description}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function HowIWork() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -49,7 +228,6 @@ export default function HowIWork() {
   const [activeStep, setActiveStep] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
-  /* mobile breakpoint */
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -57,23 +235,22 @@ export default function HowIWork() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  /* header observer */
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
-    const obs = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) { setHeaderVisible(true); obs.disconnect(); }
-    }, { threshold: 0.1 });
+    const obs = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) { setHeaderVisible(true); obs.disconnect(); } },
+      { threshold: 0.05 }
+    );
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
 
-  /* per-step observers */
   useEffect(() => {
     const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (isReduced) {
       setRevealedSteps(new Set(data.howIWork.map((_, i) => i)));
-      setActiveStep(0);
+      setActiveStep(TOTAL - 1);
       return;
     }
 
@@ -82,26 +259,30 @@ export default function HowIWork() {
     stepRefs.current.forEach((el, i) => {
       if (!el) return;
 
-      /* reveal — fires once */
-      const revealObs = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting) {
-          setRevealedSteps(prev => { const n = new Set(prev); n.add(i); return n; });
-          revealObs.disconnect();
-        }
-      }, { threshold: 0.18 });
+      const revealObs = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            setRevealedSteps((prev) => { const n = new Set(prev); n.add(i); return n; });
+            revealObs.disconnect();
+          }
+        },
+        { threshold: 0.12 }
+      );
       revealObs.observe(el);
       cleanups.push(() => revealObs.disconnect());
 
-      /* active — transfers glow as scroll moves */
-      const activeObs = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting) setActiveStep(i);
-      }, { threshold: 0.5 });
+      const activeObs = new IntersectionObserver(
+        (entries) => { if (entries[0].isIntersecting) setActiveStep(i); },
+        { threshold: 0.42 }
+      );
       activeObs.observe(el);
       cleanups.push(() => activeObs.disconnect());
     });
 
-    return () => cleanups.forEach(fn => fn());
+    return () => cleanups.forEach((fn) => fn());
   }, []);
+
+  const headerWords = 'How I work.'.split(' ');
 
   return (
     <section
@@ -109,254 +290,127 @@ export default function HowIWork() {
       id="how-i-work"
       style={{ padding: 'clamp(5rem, 10vh, 9rem) 0', position: 'relative' }}
     >
-      {/* ── Section header ─────────────────────────────────── */}
-      <div style={{ padding: '0 5vw', marginBottom: 'clamp(4rem, 8vh, 7rem)' }}>
-        {/* Eyebrow */}
-        <div
-          style={{
-            fontFamily: 'Menlo, monospace',
-            fontSize: '10px',
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: '#d4ff4f',
-            marginBottom: '1.25rem',
-            opacity: headerVisible ? 0.85 : 0,
-            transition: 'opacity 0.5s ease',
-          }}
-        >
-          Process
-        </div>
+      {/* ── Header ──────────────────────────────────────────── */}
+      <div
+        style={{
+          padding: '0 5vw',
+          marginBottom: 'clamp(3.5rem, 7vh, 6rem)',
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1.5rem',
+        }}
+      >
+        <div>
+          {/* Eyebrow */}
+          <div
+            style={{
+              fontFamily: 'Menlo, monospace',
+              fontSize: '10px',
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: '#d4ff4f',
+              marginBottom: '1.25rem',
+              opacity: headerVisible ? 0.85 : 0,
+              transition: 'opacity 0.5s ease',
+            }}
+          >
+            Process
+          </div>
 
-        {/* Word-split headline */}
-        <h2
-          className="font-display"
-          aria-label="How I work."
-          style={{
-            fontWeight: 500,
-            fontSize: 'clamp(2.5rem, 6vw, 5rem)',
-            letterSpacing: '-0.03em',
-            lineHeight: 1.05,
-            color: '#f5f5f2',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0.3em',
-            margin: 0,
-          }}
-        >
-          {HEADER_WORDS.map((word, i) => (
-            <span
-              key={i}
-              aria-hidden="true"
-              style={{
-                display: 'inline-block',
-                opacity: headerVisible ? 1 : 0,
-                transform: headerVisible ? 'translateY(0)' : 'translateY(30px)',
-                transition: `opacity 0.6s ease ${0.08 + i * 0.13}s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${0.08 + i * 0.13}s`,
-              }}
-            >
-              {word}
-            </span>
-          ))}
-        </h2>
-      </div>
-
-      {/* ── Steps ──────────────────────────────────────────── */}
-      <div style={{ position: 'relative' }}>
-
-        {/* Static dashed full-height connector */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            left: 'calc(5vw - 0.5px)',
-            top: '2rem',
-            bottom: '2rem',
-            width: '1px',
-            borderLeft: '1px dashed #1a1a22',
-            pointerEvents: 'none',
-            zIndex: 0,
-          }}
-        />
-
-        {/* Accent progress line — grows as steps are revealed */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            left: 'calc(5vw - 0.5px)',
-            top: '2rem',
-            width: '1px',
-            height: `${(revealedSteps.size / TOTAL) * 100}%`,
-            background:
-              'linear-gradient(to bottom, rgba(212,255,79,0.55) 0%, rgba(212,255,79,0.08) 100%)',
-            transition: 'height 1.1s cubic-bezier(0.16, 1, 0.3, 1)',
-            pointerEvents: 'none',
-            zIndex: 0,
-          }}
-        />
-
-        {data.howIWork.map((step, i) => {
-          const isRevealed = revealedSteps.has(i);
-          const isActive = activeStep === i;
-          const d1 = parseInt(step.step[0]); // tens — always 0
-          const d2 = parseInt(step.step[1]); // units — 1..4
-
-          return (
-            <div
-              key={i}
-              ref={el => { stepRefs.current[i] = el; }}
-              style={{
-                position: 'relative',
-                zIndex: 1,
-                padding: '0 5vw',
-                marginBottom: i < TOTAL - 1 ? 'clamp(3rem, 7vh, 6rem)' : 0,
-              }}
-            >
-              {/* Horizontal rule — draws across */}
-              <div
+          {/* Word-split headline */}
+          <h2
+            className="font-display"
+            aria-label="How I work."
+            style={{
+              fontWeight: 500,
+              fontSize: 'clamp(2.5rem, 6vw, 5rem)',
+              letterSpacing: '-0.03em',
+              lineHeight: 1.05,
+              color: '#f5f5f2',
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0.3em',
+              margin: 0,
+            }}
+          >
+            {headerWords.map((word, i) => (
+              <span
+                key={i}
                 aria-hidden="true"
                 style={{
-                  height: '1px',
-                  marginLeft: 'clamp(1.5rem, 2vw, 3rem)',
-                  width: isRevealed ? '100%' : '0%',
-                  background: isActive
-                    ? 'linear-gradient(to right, rgba(212,255,79,0.4), #1f1f24 35%)'
-                    : '#1f1f24',
-                  transition: isRevealed
-                    ? 'width 0.9s cubic-bezier(0.16, 1, 0.3, 1), background 0.5s ease'
-                    : 'background 0.5s ease',
-                }}
-              />
-
-              {/* Content: number | title | description */}
-              <div
-                style={{
-                  display: isMobile ? 'flex' : 'grid',
-                  flexDirection: isMobile ? 'column' : undefined,
-                  gridTemplateColumns: isMobile
-                    ? undefined
-                    : 'clamp(72px, 9vw, 140px) 1fr 1.1fr',
-                  gap: isMobile ? '1rem' : 'clamp(2rem, 4.5vw, 6rem)',
-                  alignItems: 'start',
-                  paddingTop: 'clamp(1.5rem, 3vh, 2.25rem)',
-                  marginLeft: 'clamp(1.5rem, 2vw, 3rem)',
+                  display: 'inline-block',
+                  opacity: headerVisible ? 1 : 0,
+                  transform: headerVisible ? 'translateY(0)' : 'translateY(28px)',
+                  transition: `opacity 0.6s ease ${0.08 + i * 0.13}s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${0.08 + i * 0.13}s`,
                 }}
               >
-                {/* ── Left: step number (odometer) ── */}
-                <div>
-                  {/* "step" label */}
-                  <div
-                    style={{
-                      fontFamily: 'Menlo, monospace',
-                      fontSize: '9px',
-                      letterSpacing: '0.14em',
-                      textTransform: 'uppercase',
-                      color: isActive ? 'rgba(212,255,79,0.55)' : '#252530',
-                      marginBottom: '0.25rem',
-                      opacity: isRevealed ? 1 : 0,
-                      transition: 'opacity 0.4s ease 0.05s, color 0.45s ease',
-                    }}
-                  >
-                    step
-                  </div>
+                {word}
+              </span>
+            ))}
+          </h2>
+        </div>
 
-                  {/* Odometer number wrapper (opacity + lift reveal) */}
-                  <div
-                    style={{
-                      opacity: isRevealed ? 1 : 0,
-                      transform: isRevealed ? 'translateY(0)' : 'translateY(14px)',
-                      transition: isRevealed
-                        ? 'opacity 0.5s ease 0.05s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s'
-                        : 'none',
-                    }}
-                  >
-                    {/* color/glow ring */}
-                    <div
-                      style={{
-                        fontFamily: 'Menlo, monospace',
-                        fontWeight: 200,
-                        fontSize: isMobile
-                          ? 'clamp(52px, 14vw, 88px)'
-                          : 'clamp(56px, 9vw, 136px)',
-                        lineHeight: 1,
-                        letterSpacing: '-0.03em',
-                        color: isActive ? '#d4ff4f' : '#1e1e28',
-                        textShadow: isActive
-                          ? '0 0 32px rgba(212,255,79,0.5)'
-                          : 'none',
-                        transition: 'color 0.5s ease, text-shadow 0.5s ease',
-                        userSelect: 'none',
-                      }}
-                    >
-                      <DigitColumn value={d1} triggered={isRevealed} delay={0} />
-                      <DigitColumn value={d2} triggered={isRevealed} delay={0.1} />
-                    </div>
-                  </div>
-                </div>
+        {/* Step progress dots */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            paddingBottom: '0.25rem',
+            opacity: headerVisible ? 1 : 0,
+            transition: 'opacity 0.6s ease 0.4s',
+          }}
+        >
+          {data.howIWork.map((_, i) => (
+            <div
+              key={i}
+              style={{
+                width: activeStep !== null && i <= activeStep ? '20px' : '6px',
+                height: '6px',
+                borderRadius: '3px',
+                background:
+                  activeStep === i
+                    ? '#d4ff4f'
+                    : activeStep !== null && i < activeStep
+                      ? '#3a3a44'
+                      : '#1e1e28',
+                boxShadow: activeStep === i ? '0 0 8px rgba(212,255,79,0.6)' : 'none',
+                transition:
+                  'width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s ease, box-shadow 0.4s ease',
+              }}
+              aria-hidden="true"
+            />
+          ))}
+        </div>
+      </div>
 
-                {/* ── Center: title ── */}
-                <div
-                  style={{
-                    opacity: isRevealed ? 1 : 0,
-                    transform: isRevealed ? 'translateX(0)' : 'translateX(-22px)',
-                    transition: isRevealed
-                      ? 'opacity 0.55s ease 0.22s, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.22s'
-                      : 'none',
-                    paddingTop: isMobile ? 0 : '0.6rem',
-                  }}
-                >
-                  <h3
-                    className="font-display"
-                    style={{
-                      fontWeight: 600,
-                      fontSize: 'clamp(18px, 2vw, 30px)',
-                      letterSpacing: '-0.02em',
-                      color: '#f5f5f2',
-                      lineHeight: 1.2,
-                      margin: 0,
-                    }}
-                  >
-                    {step.title}
-                  </h3>
-                </div>
+      {/* ── Steps ───────────────────────────────────────────── */}
+      <div>
+        {data.howIWork.map((step, i) => (
+          <div key={i} ref={(el) => { stepRefs.current[i] = el; }}>
+            <Step
+              step={step}
+              phase={PHASES[i]}
+              index={i}
+              isRevealed={revealedSteps.has(i)}
+              isActive={activeStep === i}
+              isPast={activeStep !== null && i < activeStep}
+              isMobile={isMobile}
+            />
+          </div>
+        ))}
 
-                {/* ── Right: description ── */}
-                <div
-                  style={{
-                    opacity: isRevealed ? 1 : 0,
-                    transform: isRevealed ? 'translateY(0)' : 'translateY(16px)',
-                    transition: isRevealed
-                      ? 'opacity 0.5s ease 0.4s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s'
-                      : 'none',
-                    paddingTop: isMobile ? 0 : '0.65rem',
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: '15px',
-                      color: '#8c8c94',
-                      lineHeight: 1.8,
-                      margin: 0,
-                    }}
-                  >
-                    {step.description}
-                  </p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Closing rule */}
+        {/* Bottom rule */}
         <div
           aria-hidden="true"
           style={{
-            margin: `clamp(3rem, 6vh, 5rem) 5vw 0`,
-            marginLeft: 'calc(5vw + clamp(1.5rem, 2vw, 3rem))',
+            margin: '0 5vw',
             height: '1px',
-            backgroundColor: '#1f1f24',
+            backgroundColor: '#1a1a22',
             opacity: revealedSteps.size >= TOTAL ? 1 : 0,
-            transition: 'opacity 0.5s ease 0.5s',
+            transition: 'opacity 0.6s ease 0.5s',
           }}
         />
       </div>
