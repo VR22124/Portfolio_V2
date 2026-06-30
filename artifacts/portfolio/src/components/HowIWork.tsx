@@ -78,7 +78,7 @@ function Step({ step, phase, index, isRevealed, isActive, isPast, isMobile }: St
           lineHeight: 1,
           letterSpacing: '-0.07em',
           color: '#f5f5f2',
-          opacity: isActive ? 0.055 : (isRevealed ? 0.025 : 0),
+          opacity: isActive ? 0.14 : (isRevealed ? 0.07 : 0),
           transition: 'opacity 0.7s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
           userSelect: 'none',
           pointerEvents: 'none',
