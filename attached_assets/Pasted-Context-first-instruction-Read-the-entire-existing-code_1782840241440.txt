@@ -1,0 +1,37 @@
+Context-first instruction: Read the entire existing codebase before making any changes. Study the current Experience section data, the color palette (especially the accent color), typography choices, the WebGL background, and the overall design language of the portfolio. This redesign must feel like a natural, premium evolution of what already exists — not a foreign injection.
+
+Completely rebuild the Experience section with this concept — "The Spotlight Chapters".
+
+Core Concept — Sticky Scroll Takeover: Each company experience gets its own full-viewport sticky chapter. As the user scrolls, each experience "claims" the screen — the previous one elegantly exits, the new one enters. It feels like flipping through chapters of a story, but driven entirely by natural scroll momentum. There is no snapping or scroll-jacking — it's purely driven by IntersectionObserver and CSS scroll-linked behavior so it stays smooth and native.
+
+Entry Animation for Each Chapter:
+
+The company name slams in from the left in massive, bold display type — but it animates letter by letter, each letter staggering in with a blur-to-sharp fade. The name is enormous — almost full width — raw and typographically dominant.
+Simultaneously, a thin horizontal rule draws itself across the section from left to right.
+The role title and date range materializes beneath — typewriter style, character by character, like it's being typed in real time.
+The description fades up from below with a soft motion, delayed slightly after the title settles.
+The achievement bullets appear last — each one slides in from the left with staggered delays, like items being placed on a desk one by one. Each bullet has the existing arrow/dash prefix style preserved.
+The Active Chapter Indicator: On the right edge of the screen, a slim vertical progress strip shows which chapter is currently active — minimal dots or short dashes, one per company. The active one glows in the accent color and grows slightly. Past ones are dimly lit, future ones are dark. It gives spatial awareness of where you are in the experience history without being obtrusive.
+
+Chapter Transition: When scrolling to the next company, the current chapter's content retreats upward — the company name slides up and fades out, the content follows — while the new chapter's content rises from below. The transition is smooth, staggered, and cinematic. Never abrupt.
+
+Typography Treatment:
+
+Company name: Massive display size — think editorial magazine scale. Semi-transparent ghosted treatment, then it sharpens and fully opacifies on entry.
+The date range should feel like a metadata tag — small, monospaced, muted.
+Role title: accent color, bold, slightly smaller than company name.
+Keep all existing content data — do not rewrite or trim the copy.
+Background Respect:
+
+Absolutely zero opaque section backgrounds — the WebGL must remain fully visible at all times.
+No cards, no panels, no containers.
+All text and elements sit directly over the WebGL layer with just enough contrast from font weight and color to remain readable.
+Do not add any new canvas, particle, or animation layers that could conflict with the WebGL render loop.
+Mobile Behaviour: On mobile, remove the sticky chapter behaviour entirely — fall back to a clean vertical scroll where each company animates in on scroll using simple fade-up with staggered children. The typography scales down but remains bold and dominant. The right-edge indicator collapses into a top progress bar.
+
+Strict Rules:
+
+Reuse all existing experience data from the codebase verbatim
+IntersectionObserver + CSS transitions only for all animations
+No scroll-jacking, no forced scroll positions
+No new libraries unless already present in the project
