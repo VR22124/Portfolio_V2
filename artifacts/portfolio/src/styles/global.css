@@ -182,6 +182,22 @@ h1, h2, h3, h4, h5, h6, .font-display {
   50% { opacity: 0; }
 }
 
+/* ─── Hero typewriter cursor ─── */
+@keyframes heroCursorBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ─── Hero glitch shake ─── */
+@keyframes heroGlitchShake {
+  0%   { transform: translate(0, 0)     skewX(0deg); }
+  20%  { transform: translate(-3px, 1px) skewX(-2deg); }
+  40%  { transform: translate(3px, -1px) skewX(2deg); }
+  60%  { transform: translate(-2px, 2px) skewX(-1deg); }
+  80%  { transform: translate(2px, -2px) skewX(1deg); }
+  100% { transform: translate(0, 0)     skewX(0deg); }
+}
+
 /* ─── Marquee ─── */
 @keyframes marquee-ltr {
   from { transform: translateX(0); }

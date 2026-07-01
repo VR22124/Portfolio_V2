@@ -1,0 +1,131 @@
+function HeroSection() {
+  const [lines, setLines] = useState<string[]>(['', '', ''])
+  const [phase, setPhase] = useState<'typing' | 'glitch' | 'done'>('typing')
+  const [showCursor, setShowCursor] = useState(true)
+  const sectionRef = useRef<HTMLElement>(null)
+  const isInView = useInView(sectionRef, { once: true })
+
+  useEffect(() => {
+    if (!isInView) return
+    const fullLines = [
+      PORTFOLIO_DATA.meta.name,
+      'Full-Stack Engineer',
+      PORTFOLIO_DATA.meta.tagline
+    ]
+
+    let currentLine = 0
+    let currentChar = 0
+    let done = false
+
+    const typeNext = () => {
+      if (done) return
+      if (currentLine < fullLines.length) {
+        if (currentChar < fullLines[currentLine].length) {
+          setLines(prev => {
+            const next = [...prev]
+            next[currentLine] = fullLines[currentLine].slice(0, currentChar + 1)
+            return next
+          })
+          currentChar++
+          const jitter = 45 + Math.random() * 30
+          setTimeout(typeNext, jitter)
+        } else {
+          currentLine++
+          currentChar = 0
+          setTimeout(typeNext, 350)
+        }
+      } else {
+        done = true
+        setTimeout(() => setPhase('glitch'), 500)
+        setTimeout(() => {
+          setPhase('done')
+          setTimeout(() => setShowCursor(false), 500)
+        }, 720)
+      }
+    }
+
+    setTimeout(typeNext, 200)
+    return () => { done = true }
+  }, [isInView])
+
+  const glitchVariants = ['Vi$hx', 'Vi5hx', 'V\u00EFshx']
+  const displayName = phase === 'glitch'
+    ? glitchVariants[Math.floor(Date.now() / 40) % 3]
+    : lines[0]
+
+  return (
+    <section id="hero" ref={sectionRef} className="relative min-h-screen flex items-center" style={{ zIndex: 2 }}>
+      <div className="surface-hero absolute inset-0 pointer-events-none" />
+
+      <div className="w-full max-w-6xl mx-auto px-6 md:px-12 py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <motion.div initial="hidden" animate={isInView ? 'visible' : 'hidden'} variants={staggerContainer}>
+            {/* Availability */}
+            <motion.div variants={staggerChild} className="flex items-center gap-2 mb-8">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: 'var(--accent-primary)' }} />
+                <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: 'var(--accent-primary)' }} />
+              </span>
+              <span className="font-label">{PORTFOLIO_DATA.meta.availableText}</span>
+            </motion.div>
+
+            {/* Terminal typewriter output */}
+            <div className="font-mono-code">
+              {/* Line 1: Name */}
+              <div className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-[-0.04em]" style={{
+                color: phase === 'glitch' ? 'var(--accent-danger)' : 'var(--text-primary)',
+                animation: phase === 'glitch' ? 'glitchFlicker 120ms ease' : 'none'
+              }}>
+                {displayName || '\u00A0'}
+                {phase !== 'done' && lines[0] === PORTFOLIO_DATA.meta.name && currentLineActive(0, lines) && showCursor && <span className="typing-cursor" />}
+              </div>
+
+              {/* Line 2: Title */}
+              <div className="mt-3 text-lg md:text-xl" style={{ color: 'var(--text-secondary)' }}>
+                {lines[1] || '\u00A0'}
+                {phase !== 'done' && lines[1] && !lines[2] && showCursor && <span className="typing-cursor" />}
+              </div>
+
+              {/* Line 3: Tagline */}
+              <div className="mt-2 text-base md:text-lg" style={{ color: 'var(--text-muted)' }}>
+                {lines[2] || '\u00A0'}
+                {phase !== 'done' && lines[2] && showCursor && <span className="typing-cursor" />}
+              </div>
+            </div>
+
+            {/* Location */}
+            <motion.div variants={staggerChild} className="flex items-center gap-2 mt-6">
+              <MapPin size={14} style={{ color: 'var(--text-muted)' }} />
+              <span className="text-[13px] font-body" style={{ color: 'var(--text-muted)' }}>{PORTFOLIO_DATA.meta.location}</span>
+            </motion.div>
+
+            {/* CTAs */}
+            <motion.div
+              className="flex flex-wrap gap-4 mt-8"
+              initial={{ opacity: 0 }}
+              animate={phase === 'done' ? { opacity: 1 } : { opacity: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <a href="#projects" className="group px-6 py-3 font-mono-code text-sm rounded-lg transition-all duration-300 hover:shadow-lg"
+                style={{ background: 'var(--accent-primary)', color: 'var(--bg-void)' }}>
+                <span className="flex items-center gap-2">
+                  View My Work <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                </span>
+              </a>
+              <a href={PORTFOLIO_DATA.meta.resume} className="px-6 py-3 font-mono-code text-sm rounded-lg transition-all duration-300"
+                style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }}>
+                Download CV
+              </a>
+            </motion.div>
+
+            {/* Social */}
+            <motion.div variants={staggerChild} className="flex gap-4 mt-8">
+              {[{ Icon: Github, href: PORTFOLIO_DATA.meta.github }, { Icon: Linkedin, href: PORTFOLIO_DATA.meta.linkedin }, { Icon: Twitter, href: PORTFOLIO_DATA.meta.twitter }].map(({ Icon, href }, i) => (
+                <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="p-2 transition-colors duration-300" style={{ color: 'var(--text-muted)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--accent-primary)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}>
+                  <Icon size={18} />
+                </a>
+              ))}
+            </motion.div>
+          </motion.div>
