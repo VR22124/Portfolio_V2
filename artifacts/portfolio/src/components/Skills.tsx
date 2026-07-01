@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import * as SiIcons from 'react-icons/si';
 import data from '../data.json';
-
-gsap.registerPlugin(ScrollTrigger);
 
 type Skill = (typeof data.skills)[number];
 
@@ -16,99 +12,168 @@ const sorted = [...data.skills].sort(
 function SkillRow({
   skill,
   index,
-  hoveredIdx,
-  onHover,
-  onLeave,
-  rowRef,
-  lineRef,
-  metaRef,
+  isRevealed,
+  isHovered,
+  isDimmed,
+  isMobile,
+  onMouseEnter,
+  onMouseLeave,
 }: {
   skill: Skill;
   index: number;
-  hoveredIdx: number | null;
-  onHover: (i: number) => void;
-  onLeave: () => void;
-  rowRef: (el: HTMLDivElement | null) => void;
-  lineRef: (el: HTMLDivElement | null) => void;
-  metaRef: (el: HTMLDivElement | null) => void;
+  isRevealed: boolean;
+  isHovered: boolean;
+  isDimmed: boolean;
+  isMobile: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
 }) {
   const Icon = (SiIcons as Record<string, React.ComponentType<{ size?: number }>>)[skill.icon];
-  const isHovered = hoveredIdx === index;
-  const isDimmed = hoveredIdx !== null && !isHovered;
+
+  const nameColor = isMobile
+    ? '#d4d4d0'
+    : isHovered
+      ? '#f5f5f2'
+      : isDimmed
+        ? '#252530'
+        : '#4a4a52';
+
+  const accentColor = isMobile
+    ? 'rgba(212,255,79,0.5)'
+    : isHovered
+      ? '#d4ff4f'
+      : isDimmed
+        ? '#1a1a22'
+        : '#2e2e36';
+
+  const metaColor = isMobile
+    ? '#5a5a64'
+    : isHovered
+      ? '#d4ff4f'
+      : '#252530';
 
   return (
     <div
-      ref={rowRef}
-      className="flex items-center gap-4 md:gap-7 py-5 md:py-6 border-t border-[#1f1f24] cursor-default select-none overflow-hidden"
-      style={{ opacity: 0 }}
-      onMouseEnter={() => onHover(index)}
-      onMouseLeave={onLeave}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: isMobile ? '0.875rem' : '1.5rem',
+        padding: isMobile ? '1rem 0' : '1.25rem 0',
+        borderTop: '1px solid #1f1f24',
+        cursor: 'default',
+        userSelect: 'none',
+        overflow: 'hidden',
+        opacity: isRevealed ? (isDimmed && !isMobile ? 0.35 : 1) : 0,
+        transform: isRevealed ? 'translateX(0)' : 'translateX(-20px)',
+        transition: `opacity 0.55s ease ${index * 0.04}s, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.04}s`,
+      }}
     >
       {/* Icon */}
       <span
+        aria-hidden="true"
         style={{
-          color: isHovered ? '#d4ff4f' : isDimmed ? '#1f1f24' : '#2e2e36',
-          transition: 'color 0.22s ease',
+          color: accentColor,
           display: 'flex',
           alignItems: 'center',
           flexShrink: 0,
-          filter: isHovered ? 'drop-shadow(0 0 8px rgba(212,255,79,0.4))' : 'none',
-          transitionProperty: 'color, filter',
+          filter: isHovered ? 'drop-shadow(0 0 8px rgba(212,255,79,0.5))' : 'none',
+          transition: 'color 0.25s ease, filter 0.25s ease',
         }}
-        aria-hidden="true"
       >
-        {Icon && <Icon size={20} />}
+        {Icon && <Icon size={isMobile ? 16 : 20} />}
       </span>
 
       {/* Skill name */}
       <h3
         className="font-display font-medium leading-none shrink-0"
         style={{
-          fontSize: 'clamp(24px, 3vw, 46px)',
+          fontSize: isMobile ? 'clamp(18px, 5vw, 26px)' : 'clamp(24px, 3vw, 46px)',
           letterSpacing: '-0.02em',
-          color: isHovered ? '#f5f5f2' : isDimmed ? '#2e2e36' : '#4a4a52',
-          transition: 'color 0.22s ease',
+          color: nameColor,
+          transition: 'color 0.25s ease',
         }}
       >
         {skill.name}
       </h3>
 
-      {/* Leader line — drawn by GSAP on scroll */}
-      <div className="flex-1 self-center overflow-hidden" style={{ minWidth: 24 }} aria-hidden="true">
+      {/* Leader line */}
+      <div
+        aria-hidden="true"
+        style={{
+          flex: 1,
+          alignSelf: 'center',
+          overflow: 'hidden',
+          minWidth: isMobile ? 12 : 24,
+        }}
+      >
         <div
-          ref={lineRef}
           style={{
             height: '1px',
             transformOrigin: 'left center',
-            transform: 'scaleX(0)',
+            transform: isRevealed ? 'scaleX(1)' : 'scaleX(0)',
             background: isHovered
               ? 'linear-gradient(to right, rgba(212,255,79,0.4), transparent)'
-              : '#1f1f24',
-            transition: 'background 0.25s ease',
+              : isMobile
+                ? '#252530'
+                : '#1a1a22',
+            transition: isRevealed
+              ? `transform 0.5s ease ${0.25 + index * 0.04}s, background 0.25s ease`
+              : 'background 0.25s ease',
           }}
         />
       </div>
 
-      {/* Category + level — fade in after line draws */}
+      {/* Category + level — always visible on mobile */}
       <div
-        ref={metaRef}
-        className="flex items-center gap-4 shrink-0"
-        style={{ opacity: 0 }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.875rem',
+          flexShrink: 0,
+          opacity: isRevealed ? (isMobile ? 1 : isHovered || !isDimmed ? 1 : 0.4) : 0,
+          transition: `opacity 0.4s ease ${0.4 + index * 0.04}s`,
+        }}
       >
         <span
-          className="text-[10px] font-medium tracking-[0.12em] uppercase hidden sm:block"
           style={{
-            color: isHovered ? '#d4ff4f' : '#2e2e36',
-            transition: 'color 0.22s ease',
+            fontFamily: 'Menlo, monospace',
+            fontSize: '9px',
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            color: metaColor,
+            display: isMobile ? 'none' : undefined,
+            transition: 'color 0.25s ease',
           }}
         >
           {skill.category}
         </span>
+
+        {/* Mobile: show category as small pill */}
+        {isMobile && (
+          <span
+            style={{
+              fontFamily: 'Menlo, monospace',
+              fontSize: '8px',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'rgba(212,255,79,0.4)',
+              border: '1px solid rgba(212,255,79,0.12)',
+              padding: '2px 6px',
+              borderRadius: '2px',
+            }}
+          >
+            {skill.category}
+          </span>
+        )}
+
         <span
-          className="font-mono text-sm tabular-nums"
           style={{
-            color: isHovered ? '#d4ff4f' : '#2e2e36',
-            transition: 'color 0.22s ease',
+            fontFamily: 'Menlo, monospace',
+            fontSize: isMobile ? '11px' : '13px',
+            color: metaColor,
+            transition: 'color 0.25s ease',
           }}
           aria-label={`${skill.level}% proficiency`}
         >
@@ -121,113 +186,135 @@ function SkillRow({
 
 export default function Skills() {
   const sectionRef = useRef<HTMLElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const lineRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const metaRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const [headerVisible, setHeaderVisible] = useState(false);
+  const [revealedRows, setRevealedRows] = useState<Set<number>>(new Set());
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check, { passive: true });
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
-    const ctx = gsap.context(() => {
-      // Header
-      gsap.fromTo(headerRef.current,
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1, y: 0, duration: 0.7, ease: 'power2.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 78%', once: true },
-        }
-      );
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) { setHeaderVisible(true); obs.disconnect(); } },
+      { threshold: 0.05 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
-      if (isReducedMotion) {
-        rowRefs.current.forEach(r => { if (r) r.style.opacity = '1'; });
-        lineRefs.current.forEach(l => { if (l) l.style.transform = 'scaleX(1)'; });
-        metaRefs.current.forEach(m => { if (m) m.style.opacity = '1'; });
-        return;
-      }
-
-      // Each row gets its own per-element scroll trigger
-      sorted.forEach((_, i) => {
-        const row = rowRefs.current[i];
-        const line = lineRefs.current[i];
-        const meta = metaRefs.current[i];
-        if (!row) return;
-
-        // 1. Row slides in from the left
-        gsap.fromTo(row,
-          { opacity: 0, x: -28 },
-          {
-            opacity: 1, x: 0,
-            duration: 0.65,
-            ease: 'power3.out',
-            scrollTrigger: { trigger: row, start: 'top 88%', once: true },
+  useEffect(() => {
+    const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (isReduced) {
+      setRevealedRows(new Set(sorted.map((_, i) => i)));
+      return;
+    }
+    const cleanups: (() => void)[] = [];
+    rowRefs.current.forEach((el, i) => {
+      if (!el) return;
+      const obs = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            setRevealedRows((prev) => { const n = new Set(prev); n.add(i); return n; });
+            obs.disconnect();
           }
-        );
-
-        // 2. Leader line draws left → right, starts after row lands
-        if (line) {
-          gsap.fromTo(line,
-            { scaleX: 0 },
-            {
-              scaleX: 1,
-              duration: 0.55,
-              ease: 'power2.inOut',
-              delay: 0.25,
-              scrollTrigger: { trigger: row, start: 'top 88%', once: true },
-            }
-          );
-        }
-
-        // 3. Meta (category + number) fades in after the line finishes
-        if (meta) {
-          gsap.fromTo(meta,
-            { opacity: 0 },
-            {
-              opacity: 1,
-              duration: 0.4,
-              ease: 'power2.out',
-              delay: 0.55,
-              scrollTrigger: { trigger: row, start: 'top 88%', once: true },
-            }
-          );
-        }
-      });
-    }, sectionRef);
-
-    return () => ctx.revert();
+        },
+        { threshold: 0.05, rootMargin: '0px 0px -4% 0px' }
+      );
+      obs.observe(el);
+      cleanups.push(() => obs.disconnect());
+    });
+    return () => cleanups.forEach((fn) => fn());
   }, []);
 
   return (
     <section id="skills" ref={sectionRef} className="container-layout section-padding">
 
-      <div ref={headerRef} className="mb-20" style={{ opacity: 0 }}>
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      {/* Header */}
+      <div
+        style={{
+          marginBottom: 'clamp(2.5rem, 5vh, 5rem)',
+          opacity: headerVisible ? 1 : 0,
+          transform: headerVisible ? 'translateY(0)' : 'translateY(20px)',
+          transition: 'opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'flex-start' : 'flex-end',
+            justifyContent: 'space-between',
+            gap: '1.5rem',
+          }}
+        >
           <div>
-            <div className="eyebrow mb-4">Skills & Tools</div>
-            <h2 className="font-display font-medium text-[#f5f5f2] text-h1">The toolkit.</h2>
+            <div
+              style={{
+                fontFamily: 'Menlo, monospace',
+                fontSize: '10px',
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: '#d4ff4f',
+                marginBottom: '1rem',
+                opacity: 0.85,
+              }}
+            >
+              Skills & Tools
+            </div>
+            <h2
+              className="font-display"
+              style={{
+                fontWeight: 500,
+                fontSize: 'clamp(2rem, 5vw, 4rem)',
+                letterSpacing: '-0.03em',
+                color: '#f5f5f2',
+                margin: 0,
+              }}
+            >
+              The toolkit.
+            </h2>
           </div>
-          <p className="text-body text-[#8c8c94] max-w-sm md:text-right">
+          <p
+            style={{
+              fontSize: 'clamp(13px, 1vw, 15px)',
+              color: '#8c8c94',
+              maxWidth: 280,
+              lineHeight: 1.8,
+              margin: 0,
+              textAlign: isMobile ? 'left' : 'right',
+            }}
+          >
             Picked up over six years of solving real problems in production.
           </p>
         </div>
       </div>
 
+      {/* Rows */}
       <div>
         {sorted.map((skill, i) => (
-          <SkillRow
-            key={skill.name}
-            skill={skill}
-            index={i}
-            hoveredIdx={hoveredIdx}
-            onHover={setHoveredIdx}
-            onLeave={() => setHoveredIdx(null)}
-            rowRef={el => { rowRefs.current[i] = el; }}
-            lineRef={el => { lineRefs.current[i] = el; }}
-            metaRef={el => { metaRefs.current[i] = el; }}
-          />
+          <div key={skill.name} ref={(el) => { rowRefs.current[i] = el; }}>
+            <SkillRow
+              skill={skill}
+              index={i}
+              isRevealed={revealedRows.has(i)}
+              isHovered={!isMobile && hoveredIdx === i}
+              isDimmed={!isMobile && hoveredIdx !== null && hoveredIdx !== i}
+              isMobile={isMobile}
+              onMouseEnter={() => { if (!isMobile) setHoveredIdx(i); }}
+              onMouseLeave={() => { if (!isMobile) setHoveredIdx(null); }}
+            />
+          </div>
         ))}
-        <div className="border-t border-[#1f1f24]" />
+        <div style={{ borderTop: '1px solid #1f1f24' }} />
       </div>
     </section>
   );
