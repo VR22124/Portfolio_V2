@@ -1,0 +1,37 @@
+Context-first instruction: Read the entire codebase before touching anything. Study the current principles data, the accent color, typography system, and the WebGL background. Also look at what the "How I Work" section redesign is doing — this section must feel distinctly different in layout and interaction, even though both are lists. Where Process feels sequential and methodical, Principles should feel bold, declarative, and like reading a manifesto.
+
+Completely rebuild the Principles section with this concept — "The Manifesto".
+
+Core Concept — Full-Width Text Mask Reveal: Each principle is presented as a massive, full-width typographic statement — the title alone fills an entire row at display scale, edge to edge. No columns, no side-by-side layout. Just raw, confident text that commands the screen. Think editorial magazine cover meets technical manifesto.
+
+The Scroll Reveal Mechanism: Each principle title uses a text mask clip animation — the text starts completely hidden behind a clipping mask (appears as if behind a curtain or panel). As the user scrolls and the line enters the viewport, the mask slides away — revealing the text from left to right, like a camera shutter opening or a spotlight sweeping across the words. The reveal should be smooth, confident, and slightly slower than you'd expect — unhurried, like someone making a point.
+
+After the title reveals, the description fades in directly below the title — small, light-weight, a single line or two — with a brief delay. It reads like a footnote to a bold statement.
+
+Typography Treatment:
+
+Principle titles: Enormous. Full container width. Ultra-bold weight. These are not headings — they are declarations. The type should feel like it takes up all the space it deserves.
+On alternating principles, the title shifts alignment — first principle left-aligned, second right-aligned, third left, and so on. This creates visual rhythm and prevents the section from feeling monotonous as you scroll.
+The number (01, 02, etc.) sits as a tiny superscript or inline prefix before the title — barely visible, a ghost reference, not a feature.
+The Accent Word Treatment: Within each principle title, identify the single most powerful word (e.g., "Simplicity" in "Simplicity is a feature") and render it in the accent color. Just that one word. Everything else is white/default. This creates a focal point in each statement and makes the section feel curated and intentional.
+
+Hover Interaction: When the user hovers over any principle:
+
+The accent-colored word in that principle glows brighter and subtly scales up (1.02–1.05x) — barely perceptible but felt.
+A thin underline in the accent color draws itself under the entire title from left to right.
+The description below shifts up slightly and becomes fully opaque if it was partially muted.
+All other principles dim to about 30% opacity — bringing full focus to the hovered one.
+Between Each Principle: A razor-thin horizontal divider — but instead of a static line, it pulses once with a brief glow in the accent color when the principle above it finishes its reveal animation. Then it settles to a static, barely-visible rule. Like punctuation at the end of a sentence.
+
+Section Header: "What I believe." should feel different from the rest of the site's section headers. Each word reveals itself with a vertical wipe — words appear from bottom to top, one word at a time, like they're rising into view. The period at the end arrives last, with a tiny pause — like a full stop being deliberately placed.
+
+Feel and Tone: This should feel like reading someone's code of ethics — each statement is a law, a conviction, a line in the sand. The bold type, the confident reveals, the accent word — all of it communicates that these aren't preferences, they're principles. The pacing should be slow and deliberate throughout.
+
+Strict Rules:
+
+No cards, no grid, no opaque backgrounds
+Zero new canvas or WebGL calls
+WebGL must remain fully visible — all elements transparent
+Reuse all existing principles data from the codebase verbatim
+All animations via CSS clip-path/transform transitions + IntersectionObserver only
+No scroll-jacking — natural scroll with triggered animations
