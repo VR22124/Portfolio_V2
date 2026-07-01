@@ -110,7 +110,7 @@ function App() {
       <div className="relative z-10 w-full">
         <Nav />
         <main>
-          <Hero />
+          <Hero started={!loading} />
           <Journey />
           <Experience />
           <Skills />

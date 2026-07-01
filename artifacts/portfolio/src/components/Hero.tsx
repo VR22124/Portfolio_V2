@@ -70,7 +70,7 @@ function TypewriterText({ phrases, started }: { phrases: string[]; started: bool
 /* ── Main Hero ──────────────────────────────────────────────── */
 type Phase = 'idle' | 'typing' | 'glitch' | 'done';
 
-export default function Hero() {
+export default function Hero({ started = false }: { started?: boolean }) {
   const sectionRef  = useRef<HTMLElement>(null);
   const chevronRef  = useRef<HTMLDivElement>(null);
 
