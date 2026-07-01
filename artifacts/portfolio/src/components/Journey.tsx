@@ -112,8 +112,10 @@ export default function Journey() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  const spineFillRef = useRef<HTMLDivElement>(null);
+  const mobileFillRef = useRef<HTMLDivElement>(null);
+
   const [headerVisible, setHeaderVisible] = useState(false);
-  const [spineVisible, setSpineVisible] = useState(false);
   const [revealedRows, setRevealedRows] = useState<Set<number>>(new Set());
   const [activeRow, setActiveRow] = useState<number>(-1);
   const [isMobile, setIsMobile] = useState(false);
@@ -136,15 +138,30 @@ export default function Journey() {
     return () => obs.disconnect();
   }, []);
 
+  // Scroll-driven spine progress
   useEffect(() => {
-    const el = timelineRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting) { setSpineVisible(true); obs.disconnect(); } },
-      { threshold: 0.04 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
+    const update = () => {
+      const el = timelineRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      // Begin filling when timeline top hits 70% from top of viewport
+      // Finish when timeline bottom hits 70% from top
+      const startOffset = viewH * 0.7;
+      const total = rect.height;
+      const scrolled = startOffset - rect.top;
+      const progress = Math.max(0, Math.min(1, scrolled / total));
+      if (spineFillRef.current) spineFillRef.current.style.transform = `scaleY(${progress})`;
+      if (mobileFillRef.current) mobileFillRef.current.style.transform = `scaleY(${progress})`;
+    };
+
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
   }, []);
 
   useEffect(() => {
@@ -224,13 +241,13 @@ export default function Journey() {
           style={{ left: '50%', top: 0, bottom: 0, width: 1, transform: 'translateX(-50%)', background: '#1f1f24' }}
         >
           <div
+            ref={spineFillRef}
             style={{
               position: 'absolute',
               inset: 0,
               background: 'linear-gradient(to bottom, #d4ff4f, rgba(212,255,79,0.3))',
-              transform: spineVisible ? 'scaleY(1)' : 'scaleY(0)',
+              transform: 'scaleY(0)',
               transformOrigin: 'top center',
-              transition: 'transform 2.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s',
             }}
           />
         </div>
@@ -242,13 +259,13 @@ export default function Journey() {
           style={{ left: 0, top: 0, bottom: 0, width: 1, background: '#1f1f24' }}
         >
           <div
+            ref={mobileFillRef}
             style={{
               position: 'absolute',
               inset: 0,
               background: 'linear-gradient(to bottom, #d4ff4f, rgba(212,255,79,0.3))',
-              transform: spineVisible ? 'scaleY(1)' : 'scaleY(0)',
+              transform: 'scaleY(0)',
               transformOrigin: 'top center',
-              transition: 'transform 2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s',
             }}
           />
         </div>
