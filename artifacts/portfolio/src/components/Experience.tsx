@@ -304,10 +304,10 @@ export default function Experience() {
       {/* ── Right-edge vertical chapter indicator (desktop only) ── */}
       <div
         aria-hidden="true"
-        className="hidden md:flex"
+        className="hidden lg:flex"
         style={{
           position: 'fixed',
-          right: '2rem',
+          right: '2.5rem',
           top: '50%',
           transform: 'translateY(-50%)',
           zIndex: 30,

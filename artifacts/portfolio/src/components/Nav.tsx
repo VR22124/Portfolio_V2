@@ -80,7 +80,7 @@ export default function Nav() {
       />
 
       <nav ref={navRef} className="fixed top-0 left-0 w-full z-40 py-4">
-        <div className="container-layout flex items-center justify-between gap-4">
+        <div className="container-layout flex items-center gap-4">
 
           {/* Logo / Monogram */}
           <a
@@ -99,7 +99,7 @@ export default function Nav() {
           </a>
 
           {/* Center floating pill — desktop */}
-          <div className={`hidden md:flex relative items-center nav-pill-bg px-1.5 py-1.5 gap-0.5 ${scrolled ? 'scrolled' : ''}`}>
+          <div className={`hidden md:flex relative items-center nav-pill-bg px-1.5 py-1.5 gap-0.5 mx-auto ${scrolled ? 'scrolled' : ''}`}>
             {/* Sliding active indicator */}
             <span
               ref={indicatorRef}
@@ -124,7 +124,7 @@ export default function Nav() {
           </div>
 
           {/* Right: availability + CTA */}
-          <div className="hidden md:flex items-center gap-4 shrink-0">
+          <div className="hidden md:flex items-center gap-4 shrink-0 ml-auto md:ml-0">
             <div className="flex items-center gap-2 text-xs font-medium text-[#8c8c94]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-pulse" />
               Available
@@ -139,7 +139,7 @@ export default function Nav() {
 
           {/* Mobile hamburger */}
           <button
-            className="md:hidden w-9 h-9 flex items-center justify-center text-[#f5f5f2]"
+            className="md:hidden ml-auto w-9 h-9 flex items-center justify-center text-[#f5f5f2]"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
           >

@@ -108,8 +108,8 @@ function Step({ step, phase, isRevealed, isHovered, isMobile, onMouseEnter, onMo
           position: 'relative',
           zIndex: 1,
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '220px 1fr',
-          gap: isMobile ? '1.5rem' : 'clamp(3rem, 5vw, 7rem)',
+          gridTemplateColumns: isMobile ? '1fr' : 'clamp(140px, 18%, 220px) 1fr',
+          gap: isMobile ? '1.5rem' : 'clamp(2rem, 4vw, 6rem)',
           alignItems: 'center',
           minHeight: isMobile ? undefined : 'clamp(10rem, 18vh, 16rem)',
         }}
